@@ -1,4 +1,8 @@
-package com.netflix.karyon.health;
+package com.netflix.runtime.health.api.internal;
+
+import com.netflix.runtime.health.api.HealthIndicator;
+import com.netflix.runtime.health.api.HealthIndicatorStatus;
+import com.netflix.runtime.health.api.HealthIndicatorStatuses;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -19,7 +23,7 @@ public class CachingHealthIndicator implements HealthIndicator {
     private final AtomicBoolean   busy = new AtomicBoolean();
     private volatile HealthIndicatorStatus status;
     
-    public CachingHealthIndicator(HealthIndicator delegate, long interval, TimeUnit units) {
+    private CachingHealthIndicator(HealthIndicator delegate, long interval, TimeUnit units) {
         this.delegate = delegate;
         this.interval = TimeUnit.NANOSECONDS.convert(interval, units);
     }
@@ -62,5 +66,9 @@ public class CachingHealthIndicator implements HealthIndicator {
     @Override
     public String getName() {
         return delegate.getName();
+    }
+
+    public static CachingHealthIndicator cache(HealthIndicator delegate, long interval, TimeUnit units) {
+        return new CachingHealthIndicator(delegate, interval, units);
     }
 }

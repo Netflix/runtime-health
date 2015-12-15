@@ -1,4 +1,4 @@
-package com.netflix.karyon.health;
+package com.netflix.runtime.health.api;
 
 import java.util.Map;
 

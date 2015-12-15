@@ -1,18 +1,16 @@
-package com.netflix.karyon.health;
+package com.netflix.runtime.health.core;
 
 import java.util.Arrays;
 import java.util.List;
 
-import com.google.inject.ImplementedBy;
+import com.netflix.runtime.health.api.HealthIndicator;
 
 /**
- * Registry of active HealthIndicator's.  The HealthIndicator are used by {@link HealthCheck} to 
+ * Registry of active HealthIndicator's. The HealthIndicator are used by {@link HealthCheck} to
  * determine the application health.
- * 
- * The default registry, {@link AllHealthIndicatorRegistry} uses Guice bindings to determine the
- * list of all active indicators.  To create a curated list of {@link HealthIndicator}s regardless of 
- * Guice bindings create a binding to HealthIndicatorRegistry as follows
- * 
+ * <p>
+ * To create a curated list of {@link HealthIndicator}s create a binding to {@link HealthIndicatorRegistry} as follows:
+ * <p>
  * <code>
  * {@literal @}Provides
  * {@literal @}Singleton
@@ -23,14 +21,13 @@ import com.google.inject.ImplementedBy;
  * 
  * @author elandau
  */
-@ImplementedBy(AllHealthIndicatorRegistry.class)
 public interface HealthIndicatorRegistry {
     /**
      * @return Return a list of all active health checks
      */
     List<HealthIndicator> getHealthIndicators();
     
-    public static HealthIndicatorRegistry from(List<HealthIndicator> healthChecks) {
+    static HealthIndicatorRegistry from(List<HealthIndicator> healthChecks) {
         return new HealthIndicatorRegistry() {
                 @Override
                 public List<HealthIndicator> getHealthIndicators() {
@@ -39,7 +36,7 @@ public interface HealthIndicatorRegistry {
             };     
     }
 
-    public static HealthIndicatorRegistry from(HealthIndicator... healthChecks) {
+    static HealthIndicatorRegistry from(HealthIndicator... healthChecks) {
         return from(Arrays.asList(healthChecks));
     }
 }

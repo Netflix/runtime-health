@@ -1,0 +1,4 @@
+dependencies {
+    compile project(':health-api')
+    compile 'javax.inject:javax.inject:1'
+}

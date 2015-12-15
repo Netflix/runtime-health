@@ -1,10 +1,10 @@
-package com.netflix.karyon.health;
+package com.netflix.runtime.health.api;
 
 import java.util.concurrent.CompletableFuture;
 
 /**
  * Basic interface for defining health indication logic.  0 or more HealthIndicators are used to determine 
- * the application {@link HealthCheck}.  HealthIndicators are tracked by a {@link HealthIndicatorRegistry}
+ * the application health. HealthIndicators are tracked by a {@link HealthIndicatorRegistry}
  * where the default implementation uses all HealthIndicators registered as a set multibinding.  
  * 
  * HealthIndicator can inject types that are to be consulted for health indication, call out to shell 
@@ -38,7 +38,6 @@ import java.util.concurrent.CompletableFuture;
  * </code>
  * 
  * @author elandau
- *
  */
 public interface HealthIndicator {
     /**

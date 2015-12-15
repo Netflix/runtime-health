@@ -1,0 +1,12 @@
+.gradle
+build/
+gradle-app.setting
+
+out/
+.idea/
+*.iml
+*.ipr
+*.iws
+
+.project
+.classpath

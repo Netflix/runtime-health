@@ -1,4 +1,4 @@
-package com.netflix.karyon.health;
+package com.netflix.runtime.health.governator;
 
 import java.util.Collections;
 import java.util.List;
@@ -10,6 +10,8 @@ import com.google.inject.Binding;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.TypeLiteral;
+import com.netflix.runtime.health.api.HealthIndicator;
+import com.netflix.runtime.health.core.HealthIndicatorRegistry;
 
 /**
  * Registry of {@link HealthIndicator}s that derives all active {@link HealthIndicator}s from Guice bindings.  
@@ -21,11 +23,10 @@ import com.google.inject.TypeLiteral;
  * See HealthIndicatorRegsitry for more details on creating a curated list of {@link HealthIndicator}s
  * 
  * @author elandau
- *
  */
 @Singleton
 public class AllHealthIndicatorRegistry implements HealthIndicatorRegistry {
-    private CopyOnWriteArrayList<HealthIndicator> indicators = new CopyOnWriteArrayList<HealthIndicator>();
+    private CopyOnWriteArrayList<HealthIndicator> indicators = new CopyOnWriteArrayList<>();
     
     @Inject
     public AllHealthIndicatorRegistry(Injector injector) {
