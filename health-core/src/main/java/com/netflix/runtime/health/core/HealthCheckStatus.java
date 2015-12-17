@@ -7,29 +7,21 @@ import java.util.List;
 
 /**
  * Immutable status returned by {@link HealthCheck}.
- * 
- * @author elandau
  *
+ * @author elandau
  */
 public class HealthCheckStatus {
 
-    public enum HealthState {
-        Starting,
-        Healthy,
-        Unhealthy,
-        OutOfService
-    }
-
-    private final HealthState state;
+    private final boolean state;
 
     private final List<HealthIndicatorStatus> indicators;
 
-    public HealthCheckStatus(HealthState state, List<HealthIndicatorStatus> indicators) {
+    public HealthCheckStatus(boolean state, List<HealthIndicatorStatus> indicators) {
         this.state = state;
         this.indicators = indicators;
     }
 
-    public HealthState getState() {
+    public boolean getState() {
         return state;
     }
 
@@ -37,7 +29,7 @@ public class HealthCheckStatus {
         return indicators;
     }
 
-    public static HealthCheckStatus healthy(HealthState state) {
+    public static HealthCheckStatus healthy(boolean state) {
         return new HealthCheckStatus(state, Collections.emptyList());
     }
 }

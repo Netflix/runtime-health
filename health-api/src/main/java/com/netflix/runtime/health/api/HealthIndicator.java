@@ -18,7 +18,7 @@ import java.util.concurrent.CompletableFuture;
  * Here is a sample health indicator implementation. 
  * 
  * <code>
- * public class MyHealthIndicator extends AbstractHealthIndicator {
+ * public class MyHealthIndicator implements HealthIndicator {
  *     {@literal @}Inject
  *     public MyHealthIndicator(MyService service) {
  *         this.service = service;
@@ -28,10 +28,10 @@ import java.util.concurrent.CompletableFuture;
  *     
  *     public CompletableFuture{@literal <}HealthIndicatorStatus{@literal >} check() {
  *          if (service.getErrorRate() {@literal >} 0.1) {
- *              return CompletableFuture.completedFuture(unhealthy(getName()));
+ *              return CompletableFuture.completedFuture(HealthIndicators.unhealthy(getName()));
  *          }
  *          else {
- *              return CompletableFuture.completedFuture(healthy(getName()));
+ *              return CompletableFuture.completedFuture(HealthIndicators.healthy(getName()));
  *          }
  *     }
  * }

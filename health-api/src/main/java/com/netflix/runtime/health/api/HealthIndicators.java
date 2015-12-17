@@ -7,14 +7,14 @@ import java.util.concurrent.TimeUnit;
 
 public final class HealthIndicators {
     public static HealthIndicator alwaysHealthy(String name) {
-        return memoize(name, HealthIndicatorStatuses.healthy(name));
+        return ofInstance(name, HealthIndicatorStatuses.healthy(name));
     }
 
     public static HealthIndicator alwaysUnhealthy(String name) {
-        return memoize(name, HealthIndicatorStatuses.unhealthy(name, new Exception("Unhealthy")));
+        return ofInstance(name, HealthIndicatorStatuses.unhealthy(name, new Exception("Unhealthy")));
     }
 
-    public static HealthIndicator memoize(final String name, final HealthIndicatorStatus status) {
+    public static HealthIndicator ofInstance(final String name, final HealthIndicatorStatus status) {
         return new HealthIndicator() {
             @Override
             public CompletableFuture<HealthIndicatorStatus> check() {

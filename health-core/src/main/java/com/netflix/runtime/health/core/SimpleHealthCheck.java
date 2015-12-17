@@ -44,12 +44,7 @@ public class SimpleHealthCheck implements HealthCheck {
             }
         }
 
-        return future.thenApply((t) -> {
-            HealthCheckStatus.HealthState state = calcIsHealthy(t)
-                    ? HealthCheckStatus.HealthState.Healthy
-                    : HealthCheckStatus.HealthState.Unhealthy;
-            return new HealthCheckStatus(state, t);
-        });
+        return future.thenApply(t -> new HealthCheckStatus(calcIsHealthy(t), t));
     }
 
     /**

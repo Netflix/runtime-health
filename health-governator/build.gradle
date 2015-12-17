@@ -1,6 +1,0 @@
-dependencies {
-    compile project(':health-core')
-    compile "com.netflix.governator:governator-core:${governator_version}"
-
-    testCompile "junit:junit:${junit_version}"
-}
