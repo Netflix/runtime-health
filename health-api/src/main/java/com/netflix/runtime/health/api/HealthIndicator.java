@@ -1,7 +1,5 @@
 package com.netflix.runtime.health.api;
 
-import java.util.concurrent.CompletableFuture;
-
 /**
  * Basic interface for defining health indication logic.  0 or more HealthIndicators are used to determine 
  * the application health. HealthIndicators are tracked by a {@link HealthIndicatorRegistry}
@@ -44,10 +42,6 @@ public interface HealthIndicator {
      * Perform the health check asynchronously.
      * @return Future of health status result
      */
-    CompletableFuture<HealthIndicatorStatus> check();
-    
-    /**
-     * @return Return the name of the health indicator.  Note that health indicators with duplicate names are allowed.
-     */
-    String getName();
+    void check(HealthIndicatorCallback health);
+
 }

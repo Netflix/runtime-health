@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Immutable status returned by {@link HealthCheck}.
+ * Immutable status returned by {@link HealthCheckAggregator}.
  *
  * @author elandau
  */

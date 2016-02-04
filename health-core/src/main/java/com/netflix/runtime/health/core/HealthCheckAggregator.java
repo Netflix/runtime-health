@@ -4,9 +4,6 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  */
-public interface HealthCheck {
-
-    String getName();
-
+public interface HealthCheckAggregator {
     CompletableFuture<HealthCheckStatus> check();
 }
