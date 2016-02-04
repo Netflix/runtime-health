@@ -24,12 +24,13 @@ package com.netflix.runtime.health.api;
  *     
  *     {@literal @}Inject
  *     
- *     public CompletableFuture{@literal <}HealthIndicatorStatus{@literal >} check() {
+ *     public CompletableFuture{@literal <}HealthIndicatorStatus{@literal >} check(HealthIndicatorCallback healthCallback) {
  *          if (service.getErrorRate() {@literal >} 0.1) {
- *              return CompletableFuture.completedFuture(HealthIndicators.unhealthy(getName()));
+ *              healthCallback.inform(Health.unhealthy()
+ *              			  				.withDetails("errorRate", service.getErrorRate()));
  *          }
  *          else {
- *              return CompletableFuture.completedFuture(HealthIndicators.healthy(getName()));
+ *              healthCallback.inform(Health.healthy());
  *          }
  *     }
  * }
@@ -39,9 +40,8 @@ package com.netflix.runtime.health.api;
  */
 public interface HealthIndicator {
     /**
-     * Perform the health check asynchronously.
-     * @return Future of health status result
+     * Inform the provided {@link HealthIndicatorCallback} of the {@link Health}
      */
-    void check(HealthIndicatorCallback health);
+    void check(HealthIndicatorCallback healthCallback);
 
 }

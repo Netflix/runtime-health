@@ -26,7 +26,7 @@ public class CachingHealthIndicatorTest {
 			@Override
 			public void check(HealthIndicatorCallback c) {
 				realCount.incrementAndGet();
-				c.complete(Health.healthy().build());
+				c.inform(Health.healthy().build());
 			}
 		};
 	}

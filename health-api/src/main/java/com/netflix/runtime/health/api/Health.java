@@ -4,7 +4,13 @@ package com.netflix.runtime.health.api;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
-
+/**
+ * Immutable health check instance returned from a {@link HealthIndicator}
+ * 
+ * This may be one of {@link Health}.healthy() or {@link Health}.unhealthy().
+ * Additional details may be provided (ex. {@link Health}.unhealthy(exception).withDetails(...) 
+ * @author elandau
+ */
 public final class Health {
 	
 	static final String ERROR_KEY = "error";

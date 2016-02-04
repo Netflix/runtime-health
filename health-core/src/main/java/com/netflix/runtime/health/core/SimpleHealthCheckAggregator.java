@@ -48,7 +48,7 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
     	private Health health;
 
     	@Override
-    	public void complete(Health health) {
+    	public void inform(Health health) {
     		this.health = health;
     	}
 

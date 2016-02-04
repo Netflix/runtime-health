@@ -68,7 +68,7 @@ public class SimpleHealthCheckAggregatorTest {
 		
 		@Override
 		public void check(HealthIndicatorCallback callback) {
-			callback.complete(health);
+			callback.inform(health);
 		}
 	}
 }

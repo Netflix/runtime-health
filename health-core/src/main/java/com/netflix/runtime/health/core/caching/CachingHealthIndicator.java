@@ -45,7 +45,7 @@ public class CachingHealthIndicator implements HealthIndicator {
             }
         }
         else {
-        	callback.complete(health);
+        	callback.inform(health);
         }
     }
 
