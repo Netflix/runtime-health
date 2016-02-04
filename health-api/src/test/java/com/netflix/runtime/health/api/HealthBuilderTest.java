@@ -1,9 +1,9 @@
 package com.netflix.runtime.health.api;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -32,7 +32,7 @@ public class HealthBuilderTest {
 		assertFalse(health.getDetails().isEmpty());
 		assertEquals("bar", health.getDetails().get("foo"));
 		assertEquals("qux", health.getDetails().get("baz"));
-		assertNull(health.getErrorMessage());
+		assertFalse(health.getErrorMessage().isPresent());
 	}
 	
 	@Test
@@ -43,7 +43,7 @@ public class HealthBuilderTest {
 		assertFalse(health.isHealthy());
 		assertNotNull(health.getDetails());
 		assertTrue(health.getDetails().isEmpty());
-		assertNull(health.getErrorMessage());
+		assertFalse(health.getErrorMessage().isPresent());
 	}
 	
 	@Test
@@ -57,7 +57,7 @@ public class HealthBuilderTest {
 		assertNotNull(health.getDetails());
 		assertFalse(health.getDetails().isEmpty());
 		assertEquals("java.lang.RuntimeException: Boom", health.getDetails().get(Health.ERROR_KEY));
-		assertEquals("java.lang.RuntimeException: Boom", health.getErrorMessage());
+		assertEquals("java.lang.RuntimeException: Boom", health.getErrorMessage().get());
 	}
 	
 	@Test
@@ -74,7 +74,28 @@ public class HealthBuilderTest {
 		assertEquals("bar", health.getDetails().get("foo"));
 		assertEquals("qux", health.getDetails().get("baz"));
 		assertEquals("java.lang.RuntimeException: Boom", health.getDetails().get(Health.ERROR_KEY));
-		assertEquals("java.lang.RuntimeException: Boom", health.getErrorMessage());
+		assertEquals("java.lang.RuntimeException: Boom", health.getErrorMessage().get());
+	}
+	
+	@Test
+	public void exceptionOnNullDetailKey() {
+		assertThatThrownBy(() -> Health.healthy().withDetail(null, "value"))
+								.isInstanceOf(IllegalArgumentException.class)
+								.hasMessageContaining("Key must not be null");
+	}
+	
+	@Test
+	public void exceptionOnNullDetailValue() {
+		assertThatThrownBy(() -> Health.healthy().withDetail("key", null))
+								.isInstanceOf(IllegalArgumentException.class)
+								.hasMessageContaining("Data must not be null");
+	}
+	
+	@Test
+	public void exceptionOnReservedErrorKeySet() {
+		assertThatThrownBy(() -> Health.healthy().withDetail("error", "some error"))
+		.isInstanceOf(IllegalArgumentException.class)
+		.hasMessageContaining("\"error\" is a reserved key and may not be overridden");
 	}
 
 }

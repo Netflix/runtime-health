@@ -3,6 +3,7 @@ package com.netflix.runtime.health.api;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public final class Health {
 	
@@ -40,11 +41,8 @@ public final class Health {
     	return this.isHealthy;
     }
 
-	public String getErrorMessage() {
-		if(getDetails().get(ERROR_KEY) != null)
-			return getDetails().get(ERROR_KEY).toString();
-		else
-			return null;
+	public Optional<String> getErrorMessage() {
+		return Optional.ofNullable((String) getDetails().get(ERROR_KEY));
 	}
 
 	/**
@@ -107,7 +105,8 @@ public final class Health {
 		 */
 		public Builder withException(Throwable ex) {
 			assertNotNull(ex, "Exception must not be null");
-			return withDetail(ERROR_KEY, ex.getClass().getName() + ": " + ex.getMessage());
+			this.details.put(ERROR_KEY, ex.getClass().getName() + ": " + ex.getMessage());
+			return this;
 		}
 
 		/**
@@ -119,6 +118,7 @@ public final class Health {
 		public Builder withDetail(String key, Object data) {
 			assertNotNull(key, "Key must not be null");
 			assertNotNull(data, "Data must not be null");
+			assertNotReservedKey(key, "\""+key+"\" is a reserved key and may not be overridden");
 			this.details.put(key, data);
 			return this;
 		}
@@ -134,6 +134,12 @@ public final class Health {
 	
 	private static void assertNotNull(Object test, String message) {
 		if(test == null){
+			throw new IllegalArgumentException(message);
+		}
+	}
+	
+	private static void assertNotReservedKey(Object key, String message) {
+		if(ERROR_KEY.equals(key)){
 			throw new IllegalArgumentException(message);
 		}
 	}

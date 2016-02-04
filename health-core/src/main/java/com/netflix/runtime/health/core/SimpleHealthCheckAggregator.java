@@ -13,7 +13,7 @@ import com.netflix.runtime.health.api.HealthIndicatorCallback;
  */
 public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
   
-	protected List<HealthIndicator> indicators;
+	protected final List<HealthIndicator> indicators;
 
     public SimpleHealthCheckAggregator(List<HealthIndicator> indicators) {
         this.indicators = new ArrayList<>(indicators);
