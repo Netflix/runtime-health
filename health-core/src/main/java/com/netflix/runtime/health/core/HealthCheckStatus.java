@@ -1,9 +1,10 @@
 package com.netflix.runtime.health.core;
 
-import com.netflix.runtime.health.api.HealthIndicatorStatus;
-
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import com.netflix.runtime.health.api.Health;
 
 /**
  * Immutable status returned by {@link HealthCheckAggregator}.
@@ -14,18 +15,18 @@ public class HealthCheckStatus {
 
     private final boolean state;
 
-    private final List<HealthIndicatorStatus> indicators;
+    private final List<Health> indicators;
 
-    public HealthCheckStatus(boolean state, List<HealthIndicatorStatus> indicators) {
+    public HealthCheckStatus(boolean state, List<Health> indicators) {
         this.state = state;
-        this.indicators = indicators;
+        this.indicators = new ArrayList<>(indicators);
     }
 
     public boolean getState() {
         return state;
     }
 
-    public List<HealthIndicatorStatus> getIndicators() {
+    public List<Health> getIndicators() {
         return indicators;
     }
 

@@ -5,17 +5,58 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public final class Health {
-
-	/**
-	 * Create a new {@link Builder} instance with a {@link HealthIndicatorStatus} of "healthy".
-	 * @return a new {@link Builder} instance
-	 */
-	public static Builder healthy() {
-		return status(new HealthIndicatorStatus(true));
+	
+	static final String ERROR_KEY = "error";
+	private final Map<String, Object> details;
+	private final boolean isHealthy;
+	
+	private Health(boolean isHealthy) {
+		this.isHealthy=isHealthy;
+		this.details = new LinkedHashMap<>();
+	}
+	
+	private Health(boolean isHealthy, Map<String, Object> details) {
+		this.isHealthy = isHealthy;
+		this.details = new LinkedHashMap<>(details);
+	}
+	
+	private Health(Health health) {
+		this.isHealthy = health.isHealthy();
+		this.details = health.getDetails();
 	}
 
 	/**
-	 * Create a new {@link Builder} instance with a {@link HealthIndicatorStatus} of "unhealthy"
+     * @return Map of named attributes that provide additional information regarding the health.
+     * For example, a CPU health check may return Unhealthy with attribute "usage"="90%"
+     */
+    public Map<String, Object> getDetails() {
+    	return this.details;
+    }
+    
+    /**
+     * @return True if healthy or false otherwise.
+     */
+    public boolean isHealthy() {
+    	return this.isHealthy;
+    }
+
+	public String getErrorMessage() {
+		if(getDetails().get(ERROR_KEY) != null)
+			return getDetails().get(ERROR_KEY).toString();
+		else
+			return null;
+	}
+
+	/**
+	 * Create a new {@link Builder} instance with a {@link Health} of "healthy".
+	 * @return a new {@link Builder} instance
+	 */
+	public static Builder healthy() {
+		return health(new Health(true));
+	}
+
+	/**
+	 * Create a new {@link Builder} instance with a {@link Health} of "unhealthy"
 	 * which includes the provided exception details.
 	 * @param ex the exception
 	 * @return a new {@link Builder} instance
@@ -25,46 +66,38 @@ public final class Health {
 	}
 
 	/**
-	 * Create a new {@link Builder} instance with a {@link HealthIndicatorStatus} of "unhealthy".
+	 * Create a new {@link Builder} instance with a {@link Health} of "unhealthy".
 	 * @return a new {@link Builder} instance
 	 */
 	public static Builder unhealthy() {
-		return status(new HealthIndicatorStatus(false));
+		return health(new Health(false));
 	}
 
 	/**
-	 * Create a new {@link Builder} instance with a specific {@link HealthIndicatorStatus}.
-	 * @param status the status
+	 * Create a new {@link Builder} instance with a specific {@link Health}.
+	 * @param health the health
 	 * @return a new {@link Builder} instance
 	 */
-	private static Builder status(HealthIndicatorStatus status) {
-		return new Builder(status);
+	private static Builder health(Health health) {
+		return new Builder(health);
 	}
 
 	/**
-	 * Builder for creating immutable {@link HealthIndicatorStatus} instances.
+	 * Builder for creating immutable {@link Health} instances.
 	 */
 	public static class Builder {
 
-		private boolean isHealthy;
-		private Map<String, Object> details;
+		private final boolean isHealthy;
+		private final Map<String, Object> details;
 
 		/**
-		 * Create new Builder instance.
+		 * Create new Builder instance using a {@link Health}
+		 * @param health the {@link Health} to use
 		 */
-		public Builder() {
-			this.isHealthy = false; 
-			this.details = new LinkedHashMap<String, Object>();
-		}
-
-		/**
-		 * Create new Builder instance using a {@link HealthIndicatorStatus}
-		 * @param status the {@link HealthIndicatorStatus} to use
-		 */
-		private Builder(HealthIndicatorStatus status) {
-			assertNotNull(status, "HealthIndicatorStatus must not be null");
-			this.isHealthy = status.isHealthy();
-			this.details = new LinkedHashMap<String, Object>();
+		private Builder(Health health) {
+			assertNotNull(health, "Health must not be null");
+			this.isHealthy = health.isHealthy();
+			this.details = health.getDetails();
 		}
 
 		/**
@@ -74,7 +107,7 @@ public final class Health {
 		 */
 		public Builder withException(Throwable ex) {
 			assertNotNull(ex, "Exception must not be null");
-			return withDetail("error", ex.getClass().getName() + ": " + ex.getMessage());
+			return withDetail(ERROR_KEY, ex.getClass().getName() + ": " + ex.getMessage());
 		}
 
 		/**
@@ -91,11 +124,11 @@ public final class Health {
 		}
 
 		/**
-		 * Create a new {@link HealthIndicatorStatus} from the provided information. 
-		 * @return a new {@link HealthIndicatorStatus} instance
+		 * Create a new {@link Health} from the provided information. 
+		 * @return a new {@link Health} instance
 		 */
-		public HealthIndicatorStatus build() {
-			return new HealthIndicatorStatus(this.isHealthy, this.details);
+		public Health build() {
+			return new Health(this.isHealthy, this.details);
 		}
 	}
 	

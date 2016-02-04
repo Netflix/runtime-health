@@ -1,6 +1,10 @@
 package com.netflix.runtime.health.api;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -8,69 +12,69 @@ public class HealthBuilderTest {
 	
 	@Test
 	public void healthyStatus() {
-		HealthIndicatorStatus status = Health.healthy().build();
-		assertNotNull(status);
-		assertNotNull(status.isHealthy());
-		assertTrue(status.isHealthy());
-		assertNotNull(status.getDetails());
-		assertTrue(status.getDetails().isEmpty());
+		Health health = Health.healthy().build();
+		assertNotNull(health);
+		assertNotNull(health.isHealthy());
+		assertTrue(health.isHealthy());
+		assertNotNull(health.getDetails());
+		assertTrue(health.getDetails().isEmpty());
 	}
 	
 	@Test
 	public void healthyStatusWithDetails() {
-		HealthIndicatorStatus status = Health.healthy()
+		Health health = Health.healthy()
 										.withDetail("foo", "bar")
 										.withDetail("baz", "qux").build();
-		assertNotNull(status);
-		assertNotNull(status.isHealthy());
-		assertTrue(status.isHealthy());
-		assertNotNull(status.getDetails());
-		assertFalse(status.getDetails().isEmpty());
-		assertEquals("bar", status.getDetails().get("foo"));
-		assertEquals("qux", status.getDetails().get("baz"));
-		assertNull(status.getErrorMessage());
+		assertNotNull(health);
+		assertNotNull(health.isHealthy());
+		assertTrue(health.isHealthy());
+		assertNotNull(health.getDetails());
+		assertFalse(health.getDetails().isEmpty());
+		assertEquals("bar", health.getDetails().get("foo"));
+		assertEquals("qux", health.getDetails().get("baz"));
+		assertNull(health.getErrorMessage());
 	}
 	
 	@Test
 	public void unhealthyStatus() {
-		HealthIndicatorStatus status = Health.unhealthy().build();
-		assertNotNull(status);
-		assertNotNull(status.isHealthy());
-		assertFalse(status.isHealthy());
-		assertNotNull(status.getDetails());
-		assertTrue(status.getDetails().isEmpty());
-		assertNull(status.getErrorMessage());
+		Health health = Health.unhealthy().build();
+		assertNotNull(health);
+		assertNotNull(health.isHealthy());
+		assertFalse(health.isHealthy());
+		assertNotNull(health.getDetails());
+		assertTrue(health.getDetails().isEmpty());
+		assertNull(health.getErrorMessage());
 	}
 	
 	@Test
 	public void unhealthyStatusWithExceptoin() {
-		HealthIndicatorStatus status = Health.unhealthy()
+		Health health = Health.unhealthy()
 										.withException(new RuntimeException("Boom"))
 										.build();
-		assertNotNull(status);
-		assertNotNull(status.isHealthy());
-		assertFalse(status.isHealthy());
-		assertNotNull(status.getDetails());
-		assertFalse(status.getDetails().isEmpty());
-		assertEquals("java.lang.RuntimeException: Boom", status.getDetails().get("error"));
-		assertEquals("java.lang.RuntimeException: Boom", status.getErrorMessage());
+		assertNotNull(health);
+		assertNotNull(health.isHealthy());
+		assertFalse(health.isHealthy());
+		assertNotNull(health.getDetails());
+		assertFalse(health.getDetails().isEmpty());
+		assertEquals("java.lang.RuntimeException: Boom", health.getDetails().get(Health.ERROR_KEY));
+		assertEquals("java.lang.RuntimeException: Boom", health.getErrorMessage());
 	}
 	
 	@Test
 	public void unhealthyStatusWithDetails() {
-		HealthIndicatorStatus status = Health.unhealthy()
+		Health health = Health.unhealthy()
 										.withException(new RuntimeException("Boom"))
 										.withDetail("foo", "bar")
 										.withDetail("baz", "qux").build();
-		assertNotNull(status);
-		assertNotNull(status.isHealthy());
-		assertFalse(status.isHealthy());
-		assertNotNull(status.getDetails());
-		assertFalse(status.getDetails().isEmpty());
-		assertEquals("bar", status.getDetails().get("foo"));
-		assertEquals("qux", status.getDetails().get("baz"));
-		assertEquals("java.lang.RuntimeException: Boom", status.getDetails().get("error"));
-		assertEquals("java.lang.RuntimeException: Boom", status.getErrorMessage());
+		assertNotNull(health);
+		assertNotNull(health.isHealthy());
+		assertFalse(health.isHealthy());
+		assertNotNull(health.getDetails());
+		assertFalse(health.getDetails().isEmpty());
+		assertEquals("bar", health.getDetails().get("foo"));
+		assertEquals("qux", health.getDetails().get("baz"));
+		assertEquals("java.lang.RuntimeException: Boom", health.getDetails().get(Health.ERROR_KEY));
+		assertEquals("java.lang.RuntimeException: Boom", health.getErrorMessage());
 	}
 
 }

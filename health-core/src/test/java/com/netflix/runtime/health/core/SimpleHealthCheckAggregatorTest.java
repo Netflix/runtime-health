@@ -13,7 +13,6 @@ import org.junit.Test;
 import com.netflix.runtime.health.api.Health;
 import com.netflix.runtime.health.api.HealthIndicator;
 import com.netflix.runtime.health.api.HealthIndicatorCallback;
-import com.netflix.runtime.health.api.HealthIndicatorStatus;
 
 public class SimpleHealthCheckAggregatorTest {
 	
@@ -55,21 +54,21 @@ public class SimpleHealthCheckAggregatorTest {
 				new TestHealthIndicator(Health.healthy().withDetail("foo", "bar").build()),
 				new TestHealthIndicator(Health.unhealthy(new RuntimeException("Boom")).build())));
 		assertFalse(aggregator.check().get().getState());
-		List<HealthIndicatorStatus> indicators = aggregator.check().get().getIndicators();
+		List<Health> indicators = aggregator.check().get().getIndicators();
 		assertThat(indicators).flatExtracting(s->s.getDetails().keySet()).contains("foo", "error");
 		assertThat(indicators).flatExtracting(s->s.getDetails().values()).contains("bar", "java.lang.RuntimeException: Boom");
 	}
 	
 	private class TestHealthIndicator implements HealthIndicator {
 
-		private HealthIndicatorStatus status;
-		public TestHealthIndicator(HealthIndicatorStatus status) {
-			this.status = status;
+		private Health health;
+		public TestHealthIndicator(Health health) {
+			this.health = health;
 		}
 		
 		@Override
-		public void check(HealthIndicatorCallback health) {
-			health.complete(status);
+		public void check(HealthIndicatorCallback callback) {
+			callback.complete(health);
 		}
 	}
 }

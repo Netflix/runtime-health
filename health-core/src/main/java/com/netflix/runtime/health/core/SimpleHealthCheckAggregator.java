@@ -1,13 +1,13 @@
 package com.netflix.runtime.health.core;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
+import com.netflix.runtime.health.api.Health;
 import com.netflix.runtime.health.api.HealthIndicator;
 import com.netflix.runtime.health.api.HealthIndicatorCallback;
-import com.netflix.runtime.health.api.HealthIndicatorStatus;
 
 /**
  */
@@ -15,29 +15,29 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
   
 	protected List<HealthIndicator> indicators;
 
-    public SimpleHealthCheckAggregator(List<HealthIndicator> healthIndicator) {
-        this.indicators = healthIndicator;
+    public SimpleHealthCheckAggregator(List<HealthIndicator> indicators) {
+        this.indicators = new ArrayList<>(indicators);
     }
 
     public CompletableFuture<HealthCheckStatus> check() {
-        final CompletableFuture<List<HealthIndicatorStatus>> future = new CompletableFuture<>(); 
-        final List<HealthIndicatorStatus> statuses = indicators.stream()
+        final CompletableFuture<List<Health>> future = new CompletableFuture<>(); 
+        final List<Health> statuses = indicators.stream()
         			.map(this::getStatusUsingCallback)
         			.collect(Collectors.toList());
         future.complete(statuses);
         return future.thenApply(t -> new HealthCheckStatus(determineIfHealthy(t), t));
     }
 
-    protected HealthIndicatorStatus getStatusUsingCallback(HealthIndicator indicator) {
+    protected Health getStatusUsingCallback(HealthIndicator indicator) {
     	SimpleHealthIndicatorCallback simpleHealthIndicatorCallback = new SimpleHealthIndicatorCallback();
     	indicator.check(simpleHealthIndicatorCallback);
-    	return simpleHealthIndicatorCallback.getHealthIndicatorStatus(); 	
+    	return simpleHealthIndicatorCallback.getHealth(); 	
     }
     
     /**
      * Return false is any of the health indicators are unhealthy.
      */
-    protected boolean determineIfHealthy(List<HealthIndicatorStatus> statuses) {
+    protected boolean determineIfHealthy(List<Health> statuses) {
     	return statuses.stream()
     					.map(indicator -> indicator.isHealthy())
     					.reduce(true, (a,b)-> a && b);
@@ -45,15 +45,15 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
     
     protected class SimpleHealthIndicatorCallback implements HealthIndicatorCallback {
 
-    	private HealthIndicatorStatus healthIndicatorStatus;
+    	private Health health;
 
     	@Override
-    	public void complete(HealthIndicatorStatus status) {
-    		this.healthIndicatorStatus = status;
+    	public void complete(Health health) {
+    		this.health = health;
     	}
 
-    	public HealthIndicatorStatus getHealthIndicatorStatus() {
-    		return healthIndicatorStatus;
+    	public Health getHealth() {
+    		return health;
     	}
     }
 }

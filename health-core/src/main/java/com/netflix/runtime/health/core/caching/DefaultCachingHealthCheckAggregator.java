@@ -8,10 +8,10 @@ import com.netflix.runtime.health.api.HealthIndicator;
 import com.netflix.runtime.health.core.SimpleHealthCheckAggregator;
 
 public class DefaultCachingHealthCheckAggregator extends SimpleHealthCheckAggregator {
-
-	public DefaultCachingHealthCheckAggregator(List<HealthIndicator> indicators) {
+	
+	public DefaultCachingHealthCheckAggregator(List<HealthIndicator> indicators, long interval, TimeUnit units) {
 		super(indicators.stream()
-				.map(delegate -> CachingHealthIndicator.cache(delegate, 1, TimeUnit.SECONDS))
+				.map(delegate -> CachingHealthIndicator.wrap(delegate, interval, units))
 				.collect(Collectors.toList()));
 	}
 
