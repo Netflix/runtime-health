@@ -8,7 +8,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 
 import com.netflix.runtime.health.api.Health;
 import com.netflix.runtime.health.api.HealthIndicator;
@@ -34,12 +33,11 @@ public final class AsyncHealthCheckAggregator implements HealthCheckAggregator {
     
     @Override
     public CompletableFuture<HealthCheckStatus> check(long maxWaitTime, TimeUnit units) {
-        final AtomicReferenceArray<HealthIndicatorCallbackImpl> callbacks = new AtomicReferenceArray<>(indicators.size());
+        final List<HealthIndicatorCallbackImpl> callbacks = new ArrayList<>(indicators.size());
         final CompletableFuture<HealthCheckStatus> future = new CompletableFuture<HealthCheckStatus>();
         
         final AtomicInteger counter = new AtomicInteger(indicators.size());
-        for (int i = 0; i < indicators.size(); i++) {
-            HealthIndicator indicator = indicators.get(i);
+        for (HealthIndicator indicator : indicators) {
             HealthIndicatorCallbackImpl callback = new HealthIndicatorCallbackImpl(indicator) {
                 @Override
                 public void inform(Health status) {
@@ -49,7 +47,8 @@ public final class AsyncHealthCheckAggregator implements HealthCheckAggregator {
                     }
                 }
             };
-            callbacks.set(i, callback);
+
+            callbacks.add(callback);
             indicator.check(callback);
         }
         
@@ -64,15 +63,15 @@ public final class AsyncHealthCheckAggregator implements HealthCheckAggregator {
         return future;
     }
 
-    HealthCheckStatus getStatusFromCallbacks(AtomicReferenceArray<HealthIndicatorCallbackImpl> t) {
-        List<Health> healths = new ArrayList<>(t.length());
+    HealthCheckStatus getStatusFromCallbacks(List<HealthIndicatorCallbackImpl> callbacks) {
+        List<Health> healths = new ArrayList<>(callbacks.size());
         boolean isHealthy = true;
-        for (int i = 0; i < t.length(); i++) {
-            Health health = t.get(i).getHealthOrTimeout();
+        for (HealthIndicatorCallbackImpl callback : callbacks) {
+            Health health = callback.getHealthOrTimeout();
             if (!health.isHealthy()) {
                 isHealthy = false;
             }
-            healths.add(t.get(i).getHealthOrTimeout());
+            healths.add(health);
         }
         
         return HealthCheckStatus.create(isHealthy, healths);
