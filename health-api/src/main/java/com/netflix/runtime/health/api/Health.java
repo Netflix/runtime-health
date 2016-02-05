@@ -9,11 +9,10 @@ import java.util.Optional;
  * 
  * This may be one of {@link Health}.healthy() or {@link Health}.unhealthy().
  * Additional details may be provided (ex. {@link Health}.unhealthy(exception).withDetails(...) 
- * @author elandau
  */
 public final class Health {
 	
-	static final String ERROR_KEY = "error";
+    static final String ERROR_KEY = "error";
 	private final Map<String, Object> details;
 	private final boolean isHealthy;
 	
@@ -149,5 +148,10 @@ public final class Health {
 			throw new IllegalArgumentException(message);
 		}
 	}
+
+    @Override
+    public String toString() {
+        return "Health [details=" + details + ", isHealthy=" + isHealthy + "]";
+    }
 
 }

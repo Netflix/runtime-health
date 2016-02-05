@@ -3,6 +3,7 @@ package com.netflix.runtime.health.core;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.netflix.runtime.health.api.Health;
@@ -55,5 +56,10 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
     	public Health getHealth() {
     		return health;
     	}
+    }
+
+    @Override
+    public CompletableFuture<HealthCheckStatus> check(long maxWait, TimeUnit units) {
+        return check();
     }
 }
