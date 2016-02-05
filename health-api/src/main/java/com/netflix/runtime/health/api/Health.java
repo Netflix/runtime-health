@@ -55,7 +55,7 @@ public final class Health {
 	 * @return a new {@link Builder} instance
 	 */
 	public static Builder healthy() {
-		return health(new Health(true));
+		return from(new Health(true));
 	}
 
 	/**
@@ -73,7 +73,7 @@ public final class Health {
 	 * @return a new {@link Builder} instance
 	 */
 	public static Builder unhealthy() {
-		return health(new Health(false));
+		return from(new Health(false));
 	}
 
 	/**
@@ -81,7 +81,7 @@ public final class Health {
 	 * @param health the health
 	 * @return a new {@link Builder} instance
 	 */
-	private static Builder health(Health health) {
+	public static Builder from(Health health) {
 		return new Builder(health);
 	}
 
