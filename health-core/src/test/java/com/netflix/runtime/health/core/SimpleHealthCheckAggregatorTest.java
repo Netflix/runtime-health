@@ -21,7 +21,7 @@ public class SimpleHealthCheckAggregatorTest {
 	@Test
 	public void testEmptyListIsHealthy() throws Exception {
 		aggregator = new SimpleHealthCheckAggregator(new ArrayList<>());
-		assertTrue(aggregator.check().get().getState());	
+		assertTrue(aggregator.check().get().isHealthy());	
 	}
 	
 	@Test
@@ -29,7 +29,7 @@ public class SimpleHealthCheckAggregatorTest {
 		aggregator = new SimpleHealthCheckAggregator(Arrays.asList( 
 				new TestHealthIndicator(Health.healthy().build()),
 				new TestHealthIndicator(Health.healthy().build())));
-		assertTrue(aggregator.check().get().getState());	
+		assertTrue(aggregator.check().get().isHealthy());	
 	}
 	
 	@Test
@@ -37,7 +37,7 @@ public class SimpleHealthCheckAggregatorTest {
 		aggregator = new SimpleHealthCheckAggregator(Arrays.asList( 
 				new TestHealthIndicator(Health.healthy().build()),
 				new TestHealthIndicator(Health.unhealthy().build())));
-		assertFalse(aggregator.check().get().getState());
+		assertFalse(aggregator.check().get().isHealthy());
 	}
 	
 	@Test
@@ -45,7 +45,7 @@ public class SimpleHealthCheckAggregatorTest {
 		aggregator = new SimpleHealthCheckAggregator(Arrays.asList( 
 				new TestHealthIndicator(Health.unhealthy().build()),
 				new TestHealthIndicator(Health.unhealthy().build())));
-		assertFalse(aggregator.check().get().getState());
+		assertFalse(aggregator.check().get().isHealthy());
 	}
 	
 	@Test
@@ -53,7 +53,7 @@ public class SimpleHealthCheckAggregatorTest {
 		aggregator = new SimpleHealthCheckAggregator(Arrays.asList( 
 				new TestHealthIndicator(Health.healthy().withDetail("foo", "bar").build()),
 				new TestHealthIndicator(Health.unhealthy(new RuntimeException("Boom")).build())));
-		assertFalse(aggregator.check().get().getState());
+		assertFalse(aggregator.check().get().isHealthy());
 		List<Health> indicators = aggregator.check().get().getIndicators();
 		assertThat(indicators).flatExtracting(s->s.getDetails().keySet()).contains("foo", "error");
 		assertThat(indicators).flatExtracting(s->s.getDetails().values()).contains("bar", "java.lang.RuntimeException: Boom");
