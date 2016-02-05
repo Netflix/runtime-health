@@ -9,6 +9,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import com.netflix.runtime.health.api.Health;
 import com.netflix.runtime.health.api.HealthIndicator;
@@ -35,7 +36,7 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
         final CompletableFuture<HealthCheckStatus> future = new CompletableFuture<HealthCheckStatus>();
         final AtomicInteger counter = new AtomicInteger(indicators.size());
         
-        indicators.stream().forEach(indicator -> {
+        List<CompletableFuture<?>> futures = indicators.stream().map(indicator -> {
 
             HealthIndicatorCallbackImpl callback = new HealthIndicatorCallbackImpl(indicator) {
                 @Override
@@ -48,8 +49,21 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
             };
 
             callbacks.add(callback);
-            indicator.check(callback);
-        });
+      
+            return CompletableFuture.runAsync(()-> {
+	            try {
+	            	indicator.check(callback);
+	            }
+	            catch(Exception ex) 
+	            {
+	            	callback.inform(Health.unhealthy(ex).build());
+	            }
+            });
+            
+        }).collect(Collectors.toList());
+        
+        
+        
         if(indicators.size() == 0) {
         	future.complete(HealthCheckStatus.create(true, Collections.emptyList()));
         }
@@ -59,6 +73,7 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
                 @Override
                 public void run() {
                     future.complete(getStatusFromCallbacks(callbacks));
+                    CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()])).cancel(true);
                 }
             }, maxWaitTime, units);
         }
