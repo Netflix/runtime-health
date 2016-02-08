@@ -52,12 +52,12 @@ public class CachingHealthIndicatorTest {
 
 	@Test
 	public void testWithCachingAndExpiry() throws InterruptedException {
-		CachingHealthIndicator cachedIndicator = CachingHealthIndicator.wrap(testHealthIndicator, 1000, TimeUnit.MILLISECONDS);
+		CachingHealthIndicator cachedIndicator = CachingHealthIndicator.wrap(testHealthIndicator, 100, TimeUnit.MILLISECONDS);
 		for (int x = 0; x < 10; x++) {
 			cachedIndicator.check(h -> {
 				cachedCount.incrementAndGet();
 			});
-			Thread.sleep(250);
+			Thread.sleep(25);
 		}
 		assertEquals(2, realCount.get());
 		assertEquals(10, cachedCount.get());

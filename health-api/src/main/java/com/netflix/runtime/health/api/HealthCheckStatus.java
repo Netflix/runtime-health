@@ -1,9 +1,7 @@
-package com.netflix.runtime.health.core;
+package com.netflix.runtime.health.api;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import com.netflix.runtime.health.api.Health;
 
 /**
  * Immutable status returned by {@link HealthCheckAggregator}.

@@ -12,6 +12,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import com.netflix.runtime.health.api.Health;
+import com.netflix.runtime.health.api.HealthCheckAggregator;
+import com.netflix.runtime.health.api.HealthCheckStatus;
 import com.netflix.runtime.health.api.HealthIndicator;
 import com.netflix.runtime.health.api.HealthIndicatorCallback;
 

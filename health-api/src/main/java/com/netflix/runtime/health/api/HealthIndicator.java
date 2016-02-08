@@ -40,7 +40,17 @@ package com.netflix.runtime.health.api;
  */
 public interface HealthIndicator {
     /**
-     * Inform the provided {@link HealthIndicatorCallback} of the {@link Health}
+     * Inform the provided {@link HealthIndicatorCallback} of the {@link Health}.
+     * 
+     * Implementations should catch exceptions and return a status of unhealthy to provide customized messages. 
+     * Uncaught exceptions will be captured by the default implementation of {@link HealthCheckAggregator} and 
+     * returned as an unhealthy status automatically. 
+     * 
+     * Implementations of {@link HealthCheckAggregator} will also handle threading and timeouts for implementations 
+     * of {@link HealthIndicator}. Each {@link HealthIndicator} will be run in its own thread with a timeout. 
+     * Implementations should not spawn additional threads (or at least take responsibility for killing them).
+     * Timeouts will result in an unhealthy status being returned for any slow {@link HealthIndicator}
+     * with a status message indicating that it has timed out. 
      */
     void check(HealthIndicatorCallback healthCallback);
 

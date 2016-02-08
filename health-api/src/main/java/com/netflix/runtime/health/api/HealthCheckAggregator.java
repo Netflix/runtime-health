@@ -1,4 +1,4 @@
-package com.netflix.runtime.health.core;
+package com.netflix.runtime.health.api;
 
 import java.util.concurrent.CompletableFuture;
 

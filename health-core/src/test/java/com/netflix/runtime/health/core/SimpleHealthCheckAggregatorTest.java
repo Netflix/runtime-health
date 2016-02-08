@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import com.netflix.runtime.health.api.Health;
+import com.netflix.runtime.health.api.HealthCheckStatus;
 import com.netflix.runtime.health.api.HealthIndicator;
 import com.netflix.runtime.health.api.HealthIndicatorCallback;
 
@@ -89,9 +90,9 @@ public class SimpleHealthCheckAggregatorTest {
 		assertEquals(2, aggregatedHealth.getIndicators().size());
 	}
 	
-	@Test(timeout=200)
+	@Test(timeout=100)
 	public void testOneHealthyAndOneNonResponsive() throws Exception {
-		aggregator = new SimpleHealthCheckAggregator(Arrays.asList(healthy,nonResponsive), 100, TimeUnit.MILLISECONDS);
+		aggregator = new SimpleHealthCheckAggregator(Arrays.asList(healthy,nonResponsive), 50, TimeUnit.MILLISECONDS);
 		HealthCheckStatus aggregatedHealth = aggregator.check().get();
 		assertFalse(aggregatedHealth.isHealthy());
 		assertEquals(2, aggregatedHealth.getIndicators().size());
@@ -115,9 +116,9 @@ public class SimpleHealthCheckAggregatorTest {
 		assertThat(indicators).flatExtracting(s->s.getDetails().values()).contains("bar", "java.lang.RuntimeException: Boom");
 	}
 	
-	@Test(timeout=200)
+	@Test(timeout=100)
 	public void testClassNameAdded() throws Exception {
-		aggregator = new SimpleHealthCheckAggregator(Arrays.asList(healthy,unhealthy,nonResponsive), 100, TimeUnit.MILLISECONDS);
+		aggregator = new SimpleHealthCheckAggregator(Arrays.asList(healthy,unhealthy,nonResponsive), 10, TimeUnit.MILLISECONDS);
 		HealthCheckStatus aggregatedHealth = aggregator.check().get();
 		assertFalse(aggregatedHealth.isHealthy());
 		assertEquals(3, aggregatedHealth.getIndicators().size());
