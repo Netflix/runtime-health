@@ -36,7 +36,9 @@ public class CachingHealthIndicator implements HealthIndicator {
             if (this.expireTime.compareAndSet(lastExpireTime, expireTime)) {
             	if (busy.compareAndSet(false, true)) {
             		try {
-            			delegate.check(callback);
+            		    CachingHealthIndicatorCallback cachingCallback = new CachingHealthIndicatorCallback(callback);
+            			delegate.check(cachingCallback);
+            			this.health = cachingCallback.getCachedHealth();
             		}
             		finally {
             			busy.set(false);
@@ -45,12 +47,35 @@ public class CachingHealthIndicator implements HealthIndicator {
             }
         }
         else {
-        	callback.inform(health);
+        	callback.inform(Health.from(health).withDetail("cached", true).build());
         }
     }
 
     public static CachingHealthIndicator wrap(HealthIndicator delegate, long interval, TimeUnit units) {
         return new CachingHealthIndicator(delegate, interval, units);
     }
+    
+    private class CachingHealthIndicatorCallback implements HealthIndicatorCallback {
+        
+        private Health cachedHealth;
+        private final HealthIndicatorCallback delegate;
+        
+        public CachingHealthIndicatorCallback(HealthIndicatorCallback delegate) {
+            this.delegate = delegate;
+        }
+        
+        @Override
+        public void inform(Health status) {
+            this.cachedHealth = status;
+            delegate.inform(status);
+            
+        }
+        
+        public Health getCachedHealth() {
+            return cachedHealth;
+        }
+
+    }
 
 }
+

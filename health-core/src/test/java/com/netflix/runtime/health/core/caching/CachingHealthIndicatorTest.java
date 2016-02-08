@@ -1,6 +1,6 @@
 package com.netflix.runtime.health.core.caching;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -48,6 +48,7 @@ public class CachingHealthIndicatorTest {
 		}
 		assertEquals(1, realCount.get());
 		assertEquals(10, cachedCount.get());
+		
 	}
 
 	@Test
@@ -62,5 +63,30 @@ public class CachingHealthIndicatorTest {
 		assertEquals(2, realCount.get());
 		assertEquals(10, cachedCount.get());
 	}
+	
+    @Test
+    public void testValueActuallyCached() {
+        CachingHealthIndicator cachedIndicator = CachingHealthIndicator.wrap(testHealthIndicator, 100, TimeUnit.MILLISECONDS);
+        CallbackShim firstHealth = new CallbackShim();
+        CallbackShim cachedHeath = new CallbackShim();
+        cachedIndicator.check(firstHealth);
+        cachedIndicator.check(cachedHeath);
+        
+        assertEquals(firstHealth.status.isHealthy(), cachedHeath.status.isHealthy());
+        assertEquals(true, cachedHeath.status.getDetails().get("cached"));
 
+    }
+
+
+    private class CallbackShim implements HealthIndicatorCallback {
+
+        public Health status;
+
+        @Override
+        public void inform(Health status) {
+            this.status = status;
+        }
+
+    }
 }
+
