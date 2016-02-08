@@ -10,19 +10,19 @@ public class HealthCheckStatus {
 
     private final boolean isHealthy;
 
-    private final List<Health> indicators;
+    private final List<Health> healthResults;
 
     public HealthCheckStatus(boolean isHealthy, List<Health> indicators) {
         this.isHealthy = isHealthy;
-        this.indicators = new ArrayList<>(indicators);
+        this.healthResults = new ArrayList<>(indicators);
     }
 
     public boolean isHealthy() {
         return isHealthy;
     }
 
-    public List<Health> getIndicators() {
-        return indicators;
+    public List<Health> getHealthResults() {
+        return healthResults;
     }
 
     public static HealthCheckStatus create(boolean isHealthy, List<Health> indicators) {
@@ -31,6 +31,6 @@ public class HealthCheckStatus {
     
     @Override
     public String toString() {
-        return "HealthCheckStatus[isHealthy=" + isHealthy + ", indicators=" + indicators + "]";
+        return "HealthCheckStatus[isHealthy=" + isHealthy + ", indicators=" + healthResults + "]";
     }
 }
