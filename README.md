@@ -60,7 +60,7 @@ To enable the HealthIndicator simply register it as a set binding.  It will auto
 Multbindings.newSetBinder(binder()).addBinding().to(MyHealthIndicator.class);
 ```
 ### Curated health check registry
-TBD
+TBD 
 
 ### Configuration based health indicator
 TBD
