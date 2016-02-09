@@ -12,7 +12,10 @@ import java.util.Optional;
  */
 public final class Health {
 	
-    static final String ERROR_KEY = "error";
+    public static final String ERROR_KEY = "error";
+    public static final String CACHE_KEY = "cached";
+    public static final String NAME_KEY = "className";
+    
 	private final Map<String, Object> details;
 	private final boolean isHealthy;
 	

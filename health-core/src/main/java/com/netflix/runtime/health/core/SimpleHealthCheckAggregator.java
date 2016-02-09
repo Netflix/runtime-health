@@ -88,7 +88,7 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
 	    boolean isHealthy = callbacks.stream()
 		    .map(callback -> {
 		    	Health health = Health.from(callback.getHealthOrTimeout())
-		    			.withDetail("className", callback.getIndicator().getClass().getName())
+		    			.withDetail(Health.NAME_KEY, callback.getIndicator().getClass().getName())
 		    			.build();
 		    	healths.add(health);
 		    	return health;

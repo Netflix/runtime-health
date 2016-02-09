@@ -47,7 +47,7 @@ public class CachingHealthIndicator implements HealthIndicator {
             }
         }
         else {
-        	callback.inform(Health.from(health).withDetail("cached", true).build());
+        	callback.inform(Health.from(health).withDetail(Health.CACHE_KEY, true).build());
         }
     }
 
