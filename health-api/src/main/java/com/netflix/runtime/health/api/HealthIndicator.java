@@ -1,7 +1,5 @@
 package com.netflix.runtime.health.api;
 
-import java.util.concurrent.CompletableFuture;
-
 /**
  * Basic interface for defining health indication logic.  0 or more HealthIndicators are used to determine 
  * the application health. HealthIndicators are tracked by a {@link HealthIndicatorRegistry}
@@ -26,12 +24,13 @@ import java.util.concurrent.CompletableFuture;
  *     
  *     {@literal @}Inject
  *     
- *     public CompletableFuture{@literal <}HealthIndicatorStatus{@literal >} check() {
+ *     public CompletableFuture{@literal <}HealthIndicatorStatus{@literal >} check(HealthIndicatorCallback healthCallback) {
  *          if (service.getErrorRate() {@literal >} 0.1) {
- *              return CompletableFuture.completedFuture(HealthIndicators.unhealthy(getName()));
+ *              healthCallback.inform(Health.unhealthy()
+ *              			  				.withDetails("errorRate", service.getErrorRate()));
  *          }
  *          else {
- *              return CompletableFuture.completedFuture(HealthIndicators.healthy(getName()));
+ *              healthCallback.inform(Health.healthy());
  *          }
  *     }
  * }
@@ -41,13 +40,18 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface HealthIndicator {
     /**
-     * Perform the health check asynchronously.
-     * @return Future of health status result
+     * Inform the provided {@link HealthIndicatorCallback} of the {@link Health}.
+     * 
+     * Implementations should catch exceptions and return a status of unhealthy to provide customized messages. 
+     * Uncaught exceptions will be captured by the default implementation of {@link HealthCheckAggregator} and 
+     * returned as an unhealthy status automatically. 
+     * 
+     * Implementations of {@link HealthCheckAggregator} will also handle threading and timeouts for implementations 
+     * of {@link HealthIndicator}. Each {@link HealthIndicator} will be run in its own thread with a timeout. 
+     * Implementations should not spawn additional threads (or at least take responsibility for killing them).
+     * Timeouts will result in an unhealthy status being returned for any slow {@link HealthIndicator}
+     * with a status message indicating that it has timed out. 
      */
-    CompletableFuture<HealthIndicatorStatus> check();
-    
-    /**
-     * @return Return the name of the health indicator.  Note that health indicators with duplicate names are allowed.
-     */
-    String getName();
+    void check(HealthIndicatorCallback healthCallback);
+
 }
