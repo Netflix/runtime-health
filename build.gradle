@@ -14,6 +14,11 @@ subprojects {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
+    ext {
+         governatorVersion = '1.12.7-SNAPSHOT'
+         archaiusVersion = '2.0.0'
+    }
+
     repositories { 
         jcenter()
     }
