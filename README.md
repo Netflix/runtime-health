@@ -8,40 +8,40 @@ The HealthCheck API is broken up into two abstractions to allow for maximum cust
 
 ### Using HealthCheck in a Jersey resource
 ```java
-@Path("/health")
-public class HealthCheckResource {
-@Inject
-public HealthCheckResource(HealthCheckAggregator healthCheck) {
-this.healthCheck = healthCheck;
-}
+    @Path("/health")
+    public class HealthCheckResource {
+        @Inject
+        public HealthCheckResource(HealthCheckAggregator healthCheck) {
+            this.healthCheck = healthCheck;
+        }
 
-@GET
-public HealthCheckStatus doCheck() {
-return healthCheck.check().get();
-}
-}
+        @GET
+        public HealthCheckStatus doCheck() {
+            return healthCheck.check().get();
+        }
+    }
 ```
 
 ### Custom health check
 To create a custom health indicator simply implement HealthIndicator, inject any objects that are needed to determine the health state, and implement you logic in check().  Note that check returns a future so that the healthcheck system can implement a timeout.  The check() implementation is therefore expected to be well behaved and NOT block.
 
 ```java
-public class MyHealthIndicator implements HealthIndicator {
-@Inject
-public MyHealthIndicator(MyService service) {
-this.service = service;
-}
+    public class MyHealthIndicator implements HealthIndicator {
+        @Inject
+        public MyHealthIndicator(MyService service) {
+            this.service = service;
+        }
 
-@Override
-public CompletableFuture<HealthIndicatorStatus> check(HealthIndicatorCallback healthCallback) {
-if (service.getErrorRate() > 0.1) {
-healthCallback.inform(Health.unhealthy().withDetails("errorRate", service.getErrorRate()));
-}
-else {
-healthCallback.inform(Health.healthy());
-}
-}
-}
+        @Override
+        public CompletableFuture<HealthIndicatorStatus> check(HealthIndicatorCallback healthCallback) {
+            if (service.getErrorRate() > 0.1) {
+                healthCallback.inform(Health.unhealthy().withDetails("errorRate", service.getErrorRate()));
+            }
+            else {
+                healthCallback.inform(Health.healthy());
+            }
+        }
+    }
 ```
 
 To enable the HealthIndicator simply register it as a set binding.  It will automatically be picked up by the default HealthCheckAggregator
