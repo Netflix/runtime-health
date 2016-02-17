@@ -17,6 +17,7 @@ import com.netflix.governator.event.ApplicationEventDispatcher;
 import com.netflix.governator.event.guava.GuavaApplicationEventModule;
 import com.netflix.runtime.health.api.HealthCheckAggregator;
 import com.netflix.runtime.health.api.HealthIndicator;
+import com.netflix.runtime.health.core.SimpleHealthCheckAggregator;
 import com.netflix.runtime.health.core.caching.DefaultCachingHealthCheckAggregator;
 
 public class HealthModule extends AbstractModule {
@@ -52,11 +53,14 @@ public class HealthModule extends AbstractModule {
             if (indicators == null) {
                 indicators = Collections.emptySet();
             }
-            return new DefaultCachingHealthCheckAggregator(new ArrayList<HealthIndicator>(indicators), config.getCacheInterval(),
-                    config.getCacheIntervalUnits(), config.getAggregatorWaitInterval(), config.getAggregatorWaitIntervalUnits(),
-                    dispatcher);
+            if (config.cacheHealthIndicators()) {
+                return new DefaultCachingHealthCheckAggregator(new ArrayList<HealthIndicator>(indicators),
+                        config.getCacheInterval(), config.getCacheIntervalUnits(), config.getAggregatorWaitInterval(),
+                        config.getAggregatorWaitIntervalUnits(), dispatcher);
+            } else {
+                return new SimpleHealthCheckAggregator(new ArrayList<HealthIndicator>(indicators),
+                        config.getAggregatorWaitInterval(), config.getAggregatorWaitIntervalUnits(), dispatcher);
+            }
         }
-
     }
-
 }

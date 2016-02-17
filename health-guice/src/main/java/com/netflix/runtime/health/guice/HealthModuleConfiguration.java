@@ -7,7 +7,7 @@ import com.netflix.archaius.api.annotations.DefaultValue;
 public interface HealthModuleConfiguration {
 
     @DefaultValue("true")
-    boolean getCacheHealthIndicators();
+    boolean cacheHealthIndicators();
     
     @DefaultValue("5")
     long getCacheInterval();

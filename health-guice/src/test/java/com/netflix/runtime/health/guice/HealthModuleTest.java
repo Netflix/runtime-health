@@ -48,7 +48,12 @@ public class HealthModuleTest {
             @Override
             protected void configure() {
                 Multibinder<HealthIndicator> healthIndicatorBinder = Multibinder.newSetBinder(binder(), HealthIndicator.class);
-                healthIndicatorBinder.addBinding().toInstance(healthy); 
+                healthIndicatorBinder.addBinding().toInstance(healthy);
+            }
+        }, new AbstractModule() {            
+            @Override
+            protected void configure() {
+                Multibinder<HealthIndicator> healthIndicatorBinder = Multibinder.newSetBinder(binder(), HealthIndicator.class);
                 healthIndicatorBinder.addBinding().toInstance(unhealthy); 
             }
         }).createInjector();
