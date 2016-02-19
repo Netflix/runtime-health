@@ -10,7 +10,6 @@ import javax.inject.Singleton;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import com.google.inject.Provides;
-import com.google.inject.Scopes;
 import com.netflix.archaius.ConfigProxyFactory;
 import com.netflix.archaius.guice.ArchaiusModule;
 import com.netflix.governator.event.ApplicationEventDispatcher;
@@ -34,7 +33,7 @@ public class HealthModule extends AbstractModule {
     protected void configure() {
         install(new GuavaApplicationEventModule());
         install(new ArchaiusModule());
-        bind(HealthCheckAggregator.class).toProvider(HealthProvider.class).in(Scopes.SINGLETON);
+        bind(HealthCheckAggregator.class).toProvider(HealthProvider.class).asEagerSingleton();
     }
 
     private static class HealthProvider implements Provider<HealthCheckAggregator> {

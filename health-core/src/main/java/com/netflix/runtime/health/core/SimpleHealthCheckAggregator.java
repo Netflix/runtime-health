@@ -72,7 +72,13 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
             
         }).collect(Collectors.toList());
         
-        
+        if (eventDispatcher != null) {
+            future.whenComplete((h, e) -> {
+                if (h != null && previousHealth.compareAndSet(!h.isHealthy(), h.isHealthy())) {
+                    eventDispatcher.publishEvent(new HealthCheckStatusChangedEvent(h));
+                }
+            });
+        }
         
         if(indicators.size() == 0) {
         	future.complete(HealthCheckStatus.create(true, Collections.emptyList()));
@@ -87,13 +93,7 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
                 }
             }, maxWaitTime, units);
         }
-        if (eventDispatcher != null) {
-            future.whenComplete((h, e) -> {
-                if (h != null && previousHealth.compareAndSet(!h.isHealthy(), h.isHealthy())) {
-                    eventDispatcher.publishEvent(new HealthCheckStatusChangedEvent(h));
-                }
-            });
-        }
+
         return future;
     }
 
