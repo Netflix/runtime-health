@@ -28,7 +28,7 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
 	private final TimeUnit units;
 	private final long maxWaitTime;
 	private final ApplicationEventDispatcher eventDispatcher;
-	private AtomicBoolean previousHealth = new AtomicBoolean(false);
+	private final AtomicBoolean previousHealth;
 	
     public SimpleHealthCheckAggregator(List<HealthIndicator> indicators, long maxWaitTime, TimeUnit units) {
 	    this(indicators, maxWaitTime, units, null);
@@ -41,12 +41,21 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
         this.units = units;
         this.executor = Executors.newSingleThreadScheduledExecutor();
         this.eventDispatcher = eventDispatcher;
+        this.previousHealth = new AtomicBoolean();
     }
 
     public CompletableFuture<HealthCheckStatus> check() {
         final List<HealthIndicatorCallbackImpl> callbacks = new ArrayList<>(indicators.size());
         final CompletableFuture<HealthCheckStatus> future = new CompletableFuture<HealthCheckStatus>();
         final AtomicInteger counter = new AtomicInteger(indicators.size());
+        
+        if (eventDispatcher != null) {
+            future.whenComplete((h, e) -> {
+                if (h != null && previousHealth.compareAndSet(!h.isHealthy(), h.isHealthy())) {
+                    eventDispatcher.publishEvent(new HealthCheckStatusChangedEvent(h));
+                }
+            });
+        }
         
         List<CompletableFuture<?>> futures = indicators.stream().map(indicator -> {
 
@@ -71,15 +80,7 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
             });
             
         }).collect(Collectors.toList());
-        
-        if (eventDispatcher != null) {
-            future.whenComplete((h, e) -> {
-                if (h != null && previousHealth.compareAndSet(!h.isHealthy(), h.isHealthy())) {
-                    eventDispatcher.publishEvent(new HealthCheckStatusChangedEvent(h));
-                }
-            });
-        }
-        
+                
         if(indicators.size() == 0) {
         	future.complete(HealthCheckStatus.create(true, Collections.emptyList()));
         }

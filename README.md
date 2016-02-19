@@ -46,7 +46,7 @@ To create a custom health indicator simply implement HealthIndicator, inject any
 
 To enable the HealthIndicator simply register it as a set binding.  It will automatically be picked up by the default HealthCheckAggregator
 ```java
-Multbindings.newSetBinder(binder()).addBinding().to(MyHealthIndicator.class);
+Multbindings.newSetBinder(binder(), HealthIndicator.class).addBinding().to(MyHealthIndicator.class);
 ```
 ### Curated health check registry
 TBD

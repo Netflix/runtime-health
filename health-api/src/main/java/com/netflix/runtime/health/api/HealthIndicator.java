@@ -2,7 +2,7 @@ package com.netflix.runtime.health.api;
 
 /**
  * Basic interface for defining health indication logic.  0 or more HealthIndicators are used to determine 
- * the application health. HealthIndicators are tracked by a {@link HealthIndicatorRegistry}
+ * the application health. HealthIndicators are tracked by a {@link HealthCheckAggregator}
  * where the default implementation uses all HealthIndicators registered as a set multibinding.  
  * 
  * HealthIndicator can inject types that are to be consulted for health indication, call out to shell 
