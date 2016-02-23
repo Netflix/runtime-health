@@ -24,7 +24,7 @@ package com.netflix.runtime.health.api;
  *     
  *     {@literal @}Inject
  *     
- *     public CompletableFuture{@literal <}HealthIndicatorStatus{@literal >} check(HealthIndicatorCallback healthCallback) {
+ *     public void check(HealthIndicatorCallback healthCallback) {
  *          if (service.getErrorRate() {@literal >} 0.1) {
  *              healthCallback.inform(Health.unhealthy()
  *              			  				.withDetails("errorRate", service.getErrorRate()));

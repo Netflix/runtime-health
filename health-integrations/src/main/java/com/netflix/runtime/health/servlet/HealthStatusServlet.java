@@ -13,7 +13,7 @@ import com.netflix.runtime.health.api.HealthCheckAggregator;
 import com.netflix.runtime.health.api.HealthCheckStatus;
 
 @Singleton
-public class HealthStatusServlet extends HttpServlet {
+public final class HealthStatusServlet extends HttpServlet {
     
     private static final long serialVersionUID = -6518168654611266480L;
     private final HealthCheckAggregator healthCheckAggregator;

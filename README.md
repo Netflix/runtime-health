@@ -33,7 +33,7 @@ To create a custom health indicator simply implement HealthIndicator, inject any
         }
 
         @Override
-        public CompletableFuture<HealthIndicatorStatus> check(HealthIndicatorCallback healthCallback) {
+        public void check(HealthIndicatorCallback healthCallback) {
             if (service.getErrorRate() > 0.1) {
                 healthCallback.inform(Health.unhealthy().withDetails("errorRate", service.getErrorRate()));
             }

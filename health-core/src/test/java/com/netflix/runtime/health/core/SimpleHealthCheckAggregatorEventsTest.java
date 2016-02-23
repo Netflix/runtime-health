@@ -43,8 +43,7 @@ public class SimpleHealthCheckAggregatorEventsTest {
 
     @Test(timeout = 100)
     public void testChangingHealthSendsFirstEventWhenNoListeners() throws Exception {
-        SimpleHealthCheckAggregator aggregator = new SimpleHealthCheckAggregator(Collections.emptyList(), 100, TimeUnit.SECONDS,
-                dispatcher);
+        SimpleHealthCheckAggregator aggregator = new SimpleHealthCheckAggregator(Collections.emptyList(), 100, TimeUnit.SECONDS,dispatcher);
         HealthCheckStatus aggregatedHealth = aggregator.check().get();
         assertTrue(aggregatedHealth.isHealthy());
         assertEquals(0, aggregatedHealth.getHealthResults().size());

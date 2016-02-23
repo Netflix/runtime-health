@@ -10,39 +10,95 @@ import javax.inject.Singleton;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import com.google.inject.Provides;
+import com.google.inject.binder.LinkedBindingBuilder;
+import com.google.inject.multibindings.Multibinder;
 import com.netflix.archaius.ConfigProxyFactory;
 import com.netflix.archaius.guice.ArchaiusModule;
 import com.netflix.governator.event.ApplicationEventDispatcher;
 import com.netflix.governator.event.guava.GuavaApplicationEventModule;
 import com.netflix.runtime.health.api.HealthCheckAggregator;
+import com.netflix.runtime.health.api.HealthCheckStatus;
 import com.netflix.runtime.health.api.HealthIndicator;
+import com.netflix.runtime.health.core.HealthCheckStatusChangedEvent;
 import com.netflix.runtime.health.core.SimpleHealthCheckAggregator;
 import com.netflix.runtime.health.core.caching.DefaultCachingHealthCheckAggregator;
 
+/***
+ * Guice module for installing runtime-health components. Installing this module
+ * providers support for registered custom {@link HealthIndicator}s. {@link HealthCheckStatusChangedEvent}s
+ * are dispatched each time the aggregated {@link HealthCheckStatus} for the application changes.
+ * 
+ * For configuration of caching and timeouts of {@link HealthIndicator}s, see {@link HealthAggregatorConfiguration}.
+ * 
+ * Custom {@link HealthIndicator}s may be registered as follows:
+ * <code>
+ * InjectorBuilder.fromModules(new HealthModule() {
+ *      @Override
+ *      protected void configureHealth() {
+ *          bindAdditionalHealthIndicator().to(MyCustomerIndicator.class);
+ *      }
+ * }).createInjector()
+ * </code>
+ * 
+ */
 public class HealthModule extends AbstractModule {
 
-    private static final String CONFIG_PREFIX = "health.aggregator";
-
-    @Provides
-    @Singleton
-    public HealthModuleConfiguration healthConfiguration(ConfigProxyFactory factory) {
-        return factory.newProxy(HealthModuleConfiguration.class, CONFIG_PREFIX);
-    }
-
     @Override
-    protected void configure() {
-        install(new GuavaApplicationEventModule());
-        install(new ArchaiusModule());
-        bind(HealthCheckAggregator.class).toProvider(HealthProvider.class).asEagerSingleton();
+    final protected void configure() {
+        install(new InternalHealthModule());
+        configureHealth();
     }
 
+    /***
+     * Override to provide custom {@link HealthIndicator}s
+     */
+    protected void configureHealth() {
+    };
+    
+    final protected LinkedBindingBuilder<HealthIndicator> bindAdditionalHealthIndicator() {
+        return Multibinder.newSetBinder(binder(), HealthIndicator.class).addBinding();
+    }
+
+    private final static class InternalHealthModule extends AbstractModule {
+        
+        private static final String CONFIG_PREFIX = "health.aggregator";
+
+        @Provides
+        @Singleton
+        public HealthAggregatorConfiguration healthConfiguration(ConfigProxyFactory factory) {
+            return factory.newProxy(HealthAggregatorConfiguration.class, CONFIG_PREFIX);
+        }
+        
+        @Override
+        protected void configure() {
+            install(new GuavaApplicationEventModule());
+            install(new ArchaiusModule());
+            bind(HealthCheckAggregator.class).toProvider(HealthProvider.class).asEagerSingleton();
+        }
+        
+        @Override
+        public boolean equals(Object obj) {
+            return getClass().equals(obj.getClass());
+        }
+        
+        @Override
+        public int hashCode() {
+            return getClass().hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return "InternalHealthModule[]";
+        }
+    }
+    
     private static class HealthProvider implements Provider<HealthCheckAggregator> {
 
         @Inject(optional = true)
         private Set<HealthIndicator> indicators;
 
         @Inject
-        private HealthModuleConfiguration config;
+        private HealthAggregatorConfiguration config;
 
         @Inject
         private ApplicationEventDispatcher dispatcher;

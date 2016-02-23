@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.netflix.archaius.api.annotations.DefaultValue;
 
-public interface HealthModuleConfiguration {
+public interface HealthAggregatorConfiguration {
 
     @DefaultValue("true")
     boolean cacheHealthIndicators();

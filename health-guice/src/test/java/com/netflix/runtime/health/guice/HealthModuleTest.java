@@ -63,6 +63,41 @@ public class HealthModuleTest {
         assertFalse(healthCheckStatus.isHealthy());
         assertEquals(2, healthCheckStatus.getHealthResults().size());
     }
+    
+    @Test
+    public void testConfiguringIndicatorsByExtendingHealthModule() throws InterruptedException, ExecutionException {
+        LifecycleInjector injector = InjectorBuilder.fromModules(new HealthModule() {
+            @Override
+            protected void configureHealth() {
+                bindAdditionalHealthIndicator().toInstance(healthy);
+            }
+        }).createInjector();
+        HealthCheckAggregator aggregator = injector.getInstance(HealthCheckAggregator.class);
+        assertNotNull(aggregator);
+        HealthCheckStatus healthCheckStatus = aggregator.check().get();
+        assertTrue(healthCheckStatus.isHealthy());
+        assertEquals(1, healthCheckStatus.getHealthResults().size());
+    }
+    
+    @Test
+    public void testMultipleInstancesOfHealthModuleInstalled() throws InterruptedException, ExecutionException {
+        LifecycleInjector injector = InjectorBuilder.fromModules(new HealthModule() {
+            @Override
+            protected void configureHealth() {
+                bindAdditionalHealthIndicator().toInstance(healthy);
+            }
+        }, new HealthModule() {
+            @Override
+            protected void configureHealth() {
+                bindAdditionalHealthIndicator().toInstance(unhealthy);
+            }
+        }).createInjector();
+        HealthCheckAggregator aggregator = injector.getInstance(HealthCheckAggregator.class);
+        assertNotNull(aggregator);
+        HealthCheckStatus healthCheckStatus = aggregator.check().get();
+        assertFalse(healthCheckStatus.isHealthy());
+        assertEquals(2, healthCheckStatus.getHealthResults().size());
+    }
 
 }
 
