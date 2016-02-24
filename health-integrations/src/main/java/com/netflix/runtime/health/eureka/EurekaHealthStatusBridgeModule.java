@@ -49,12 +49,12 @@ public class EurekaHealthStatusBridgeModule extends AbstractModule {
 
                 @Override
                 public void notify(StatusChangeEvent statusChangeEvent) {
-                    eventDispatcher.publishEvent(new DiscoveryStatusChangeEvent(statusChangeEvent));
+                    eventDispatcher.publishEvent(new EurekaStatusChangeEvent(statusChangeEvent));
                 }
 
                 @Override
                 public String getId() {
-                    return "governatorDiscoveryStatusEventBridge";
+                    return "eurekaHealthStatusBridgeModuleStatusChangeListener";
                 }
             });
 
@@ -70,12 +70,12 @@ public class EurekaHealthStatusBridgeModule extends AbstractModule {
             });
         }
     
-        private static class DiscoveryStatusChangeEvent extends StatusChangeEvent implements ApplicationEvent {
-            public DiscoveryStatusChangeEvent(StatusChangeEvent event) {
+        private static class EurekaStatusChangeEvent extends StatusChangeEvent implements ApplicationEvent {
+            public EurekaStatusChangeEvent(StatusChangeEvent event) {
                 this(event.getPreviousStatus(), event.getStatus());
             }
     
-            public DiscoveryStatusChangeEvent(InstanceStatus previous, InstanceStatus current) {
+            public EurekaStatusChangeEvent(InstanceStatus previous, InstanceStatus current) {
                 super(previous, current);
             }
         }
