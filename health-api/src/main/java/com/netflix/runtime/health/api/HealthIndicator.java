@@ -3,14 +3,19 @@ package com.netflix.runtime.health.api;
 /**
  * Basic interface for defining health indication logic.  0 or more HealthIndicators are used to determine 
  * the application health. HealthIndicators are tracked by a {@link HealthCheckAggregator}
- * where the default implementation uses all HealthIndicators registered as a set multibinding.  
+ * where the default implementation uses all registered HealthIndicators.  
  * 
  * HealthIndicator can inject types that are to be consulted for health indication, call out to shell 
  * scripts or call a remote service.  
  * 
  * To register a health indicator,
  * <code>
- * Multbindings.newSetBinder(binder()).addBinding().to(MyHealthIndicator.class);
+ * InjectorBuilder.fromModules(new HealthModule() {
+ *      @Override
+ *      protected void configureHealth() {
+ *          bindAdditionalHealthIndicator().to(MyCustomerIndicator.class);
+ *      }
+ * }).createInjector()
  * </code>
  *  
  * Here is a sample health indicator implementation. 

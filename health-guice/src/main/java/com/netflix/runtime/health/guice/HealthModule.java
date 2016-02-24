@@ -3,6 +3,7 @@ package com.netflix.runtime.health.guice;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Provider;
 import javax.inject.Singleton;
@@ -61,12 +62,10 @@ public class HealthModule extends AbstractModule {
 
     private final static class InternalHealthModule extends AbstractModule {
         
-        private static final String CONFIG_PREFIX = "health.aggregator";
-
         @Provides
         @Singleton
         public HealthAggregatorConfiguration healthConfiguration(ConfigProxyFactory factory) {
-            return factory.newProxy(HealthAggregatorConfiguration.class, CONFIG_PREFIX);
+            return factory.newProxy(HealthAggregatorConfiguration.class);
         }
         
         @Override
@@ -110,11 +109,11 @@ public class HealthModule extends AbstractModule {
             }
             if (config.cacheHealthIndicators()) {
                 return new DefaultCachingHealthCheckAggregator(new ArrayList<HealthIndicator>(indicators),
-                        config.getCacheInterval(), config.getCacheIntervalUnits(), config.getAggregatorWaitInterval(),
-                        config.getAggregatorWaitIntervalUnits(), dispatcher);
+                        config.getCacheIntervalInMillis(), TimeUnit.MILLISECONDS, config.getAggregatorWaitIntervalInMillis(),
+                        TimeUnit.MILLISECONDS, dispatcher);
             } else {
                 return new SimpleHealthCheckAggregator(new ArrayList<HealthIndicator>(indicators),
-                        config.getAggregatorWaitInterval(), config.getAggregatorWaitIntervalUnits(), dispatcher);
+                        config.getAggregatorWaitIntervalInMillis(), TimeUnit.MILLISECONDS, dispatcher);
             }
         }
     }

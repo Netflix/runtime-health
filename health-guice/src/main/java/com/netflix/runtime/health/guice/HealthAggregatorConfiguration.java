@@ -1,25 +1,31 @@
 package com.netflix.runtime.health.guice;
 
-import java.util.concurrent.TimeUnit;
-
+import com.netflix.archaius.api.annotations.Configuration;
 import com.netflix.archaius.api.annotations.DefaultValue;
+import com.netflix.runtime.health.api.HealthCheckAggregator;
+import com.netflix.runtime.health.api.HealthIndicator;
 
+@Configuration(prefix="health.aggregator")
 public interface HealthAggregatorConfiguration {
 
+    /***
+     * Should health indicator results be cached between invocations.
+     */
     @DefaultValue("true")
     boolean cacheHealthIndicators();
     
-    @DefaultValue("5")
-    long getCacheInterval();
+    /***
+     * Number of milliseconds for which the {@link HealthCheckAggregator} should cache the response of
+     * any {@link HealthIndicator}.
+     */
+    @DefaultValue("5000")
+    long getCacheIntervalInMillis();
     
-    @DefaultValue("SECONDS")
-    TimeUnit getCacheIntervalUnits();
+    /***
+     * Number of milliseconds for which the {@link HealthCheckAggregator} should wait for the response
+     * of any {@link HealthIndicator} before considering it as unhealthy and canceling invocation.
+     */
+    @DefaultValue("1000")
+    long getAggregatorWaitIntervalInMillis();
     
-    @DefaultValue("1")
-    long getAggregatorWaitInterval();
-    
-    @DefaultValue("SECONDS")
-    TimeUnit getAggregatorWaitIntervalUnits();
-    
-
 }
