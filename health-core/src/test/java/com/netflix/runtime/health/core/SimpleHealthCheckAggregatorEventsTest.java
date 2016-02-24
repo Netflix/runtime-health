@@ -41,7 +41,7 @@ public class SimpleHealthCheckAggregatorEventsTest {
         };
     }
 
-    @Test(timeout = 100)
+    @Test(timeout = 1000)
     public void testChangingHealthSendsFirstEventWhenNoListeners() throws Exception {
         SimpleHealthCheckAggregator aggregator = new SimpleHealthCheckAggregator(Collections.emptyList(), 100, TimeUnit.SECONDS,dispatcher);
         HealthCheckStatus aggregatedHealth = aggregator.check().get();
@@ -51,7 +51,7 @@ public class SimpleHealthCheckAggregatorEventsTest {
         Mockito.verify(dispatcher, Mockito.times(1)).publishEvent(Mockito.any());
     }
 
-    @Test(timeout = 100)
+    @Test(timeout = 1000)
     public void testChangingHealthSendsEvent() throws Exception {
         SimpleHealthCheckAggregator aggregator = new SimpleHealthCheckAggregator(Arrays.asList(changing), 100, TimeUnit.SECONDS,dispatcher);
         HealthCheckStatus aggregatedHealth = aggregator.check().get();
