@@ -1,0 +1,8 @@
+plugins {
+    id 'nebula.optional-base' version '3.0.3'
+}
+
+dependencies {
+    compile project(':health-core')
+    compile "com.netflix.eureka:eureka-client:${eurekaVersion}", optional
+}

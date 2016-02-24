@@ -8,9 +8,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import com.netflix.governator.event.ApplicationEventDispatcher;
 import com.netflix.runtime.health.api.Health;
 import com.netflix.runtime.health.api.HealthCheckAggregator;
 import com.netflix.runtime.health.api.HealthCheckStatus;
@@ -25,18 +27,35 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
 	private final ScheduledExecutorService executor;
 	private final TimeUnit units;
 	private final long maxWaitTime;
-
+	private final ApplicationEventDispatcher eventDispatcher;
+	private final AtomicBoolean previousHealth;
+	
     public SimpleHealthCheckAggregator(List<HealthIndicator> indicators, long maxWaitTime, TimeUnit units) {
+	    this(indicators, maxWaitTime, units, null);
+	}
+
+    public SimpleHealthCheckAggregator(List<HealthIndicator> indicators, long maxWaitTime, TimeUnit units,
+            ApplicationEventDispatcher eventDispatcher) {
         this.indicators = new ArrayList<>(indicators);
         this.maxWaitTime = maxWaitTime;
         this.units = units;
         this.executor = Executors.newSingleThreadScheduledExecutor();
+        this.eventDispatcher = eventDispatcher;
+        this.previousHealth = new AtomicBoolean();
     }
 
     public CompletableFuture<HealthCheckStatus> check() {
         final List<HealthIndicatorCallbackImpl> callbacks = new ArrayList<>(indicators.size());
         final CompletableFuture<HealthCheckStatus> future = new CompletableFuture<HealthCheckStatus>();
         final AtomicInteger counter = new AtomicInteger(indicators.size());
+        
+        if (eventDispatcher != null) {
+            future.whenComplete((h, e) -> {
+                if (h != null && previousHealth.compareAndSet(!h.isHealthy(), h.isHealthy())) {
+                    eventDispatcher.publishEvent(new HealthCheckStatusChangedEvent(h));
+                }
+            });
+        }
         
         List<CompletableFuture<?>> futures = indicators.stream().map(indicator -> {
 
@@ -52,20 +71,16 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
 
             callbacks.add(callback);
       
-            return CompletableFuture.runAsync(()-> {
-	            try {
-	            	indicator.check(callback);
-	            }
-	            catch(Exception ex) 
-	            {
-	            	callback.inform(Health.unhealthy(ex).build());
-	            }
+            return CompletableFuture.runAsync(() -> {
+                try {
+                    indicator.check(callback);
+                } catch (Exception ex) {
+                    callback.inform(Health.unhealthy(ex).build());
+                }
             });
             
         }).collect(Collectors.toList());
-        
-        
-        
+                
         if(indicators.size() == 0) {
         	future.complete(HealthCheckStatus.create(true, Collections.emptyList()));
         }
@@ -79,7 +94,7 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
                 }
             }, maxWaitTime, units);
         }
-    
+
         return future;
     }
 
