@@ -44,9 +44,13 @@ To create a custom health indicator simply implement HealthIndicator, inject any
     }
 ```
 
-To enable the HealthIndicator simply register it as a set binding.  It will automatically be picked up by the default HealthCheckAggregator
+To register a HealthIndicator simply provide it when installing HealthModule.  It will automatically be picked up by the default HealthCheckAggregator
 ```java
-Multbindings.newSetBinder(binder(), HealthIndicator.class).addBinding().to(MyHealthIndicator.class);
+ InjectorBuilder.fromModules(new HealthModule() {
+      protected void configureHealth() {
+          bindAdditionalHealthIndicator().to(MyCustomerIndicator.class);
+      }
+ }).createInjector()
 ```
 ### Curated health check registry
 TBD

@@ -34,7 +34,6 @@ import com.netflix.runtime.health.core.caching.DefaultCachingHealthCheckAggregat
  * Custom {@link HealthIndicator}s may be registered as follows:
  * <code>
  * InjectorBuilder.fromModules(new HealthModule() {
- *      @Override
  *      protected void configureHealth() {
  *          bindAdditionalHealthIndicator().to(MyCustomerIndicator.class);
  *      }

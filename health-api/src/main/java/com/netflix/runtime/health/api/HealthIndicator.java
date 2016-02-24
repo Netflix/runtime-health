@@ -11,7 +11,6 @@ package com.netflix.runtime.health.api;
  * To register a health indicator,
  * <code>
  * InjectorBuilder.fromModules(new HealthModule() {
- *      @Override
  *      protected void configureHealth() {
  *          bindAdditionalHealthIndicator().to(MyCustomerIndicator.class);
  *      }
