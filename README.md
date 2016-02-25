@@ -52,8 +52,3 @@ To register a HealthIndicator simply provide it when installing HealthModule.  I
       }
  }).createInjector()
 ```
-### Curated health check registry
-TBD
-
-### Configuration based health indicator
-TBD
