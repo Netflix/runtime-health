@@ -24,7 +24,7 @@ subprojects {
         jcenter()
     }
 
-    group = "com.netflix.${githubProjectName}"
+    group = "com.netflix.runtime"
 
     dependencies {
 		testCompile 'junit:junit:4.12'
