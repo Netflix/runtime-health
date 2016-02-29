@@ -30,10 +30,20 @@ import com.netflix.discovery.StatusChangeEvent;
 import com.netflix.governator.event.ApplicationEvent;
 import com.netflix.governator.event.ApplicationEventDispatcher;
 import com.netflix.governator.event.ApplicationEventListener;
+import com.netflix.governator.spi.LifecycleListener;
 import com.netflix.runtime.health.api.HealthCheckAggregator;
 import com.netflix.runtime.health.api.HealthCheckStatus;
 import com.netflix.runtime.health.core.HealthCheckStatusChangedEvent;
 
+/**
+ * Installing this module couples Eureka status (UP/DOWN/STARTING) to {@link HealthCheckStatus}. 
+ * After injector creation, Eureka will be provided with a {@link HealthCheckHandler} instance 
+ * which delegates to {@link HealthCheckAggregator}. A "healthy" status will report UP and "unhealthy" 
+ * will report DOWN in Eureka.
+ * 
+ * Please note that prior to injector creation being completed, Eureka will remain at its default status
+ * of STARTING unless it is explicitly set otherwise. 
+ */
 public class EurekaHealthStatusBridgeModule extends AbstractModule {
 
     @Override
@@ -41,38 +51,37 @@ public class EurekaHealthStatusBridgeModule extends AbstractModule {
        bind(ApplicationEventListener.class).to(EurekaHealthStatusInformingApplicationEventListener.class).asEagerSingleton();
     }
 
-    private static class EurekaHealthStatusInformingApplicationEventListener implements ApplicationEventListener<HealthCheckStatusChangedEvent> {
-    
-        private final ApplicationEventDispatcher eventDispatcher;
-        private final ApplicationInfoManager applicationInfoManager;
-        private final HealthCheckAggregator healthCheckAggregator;
-        private final EurekaClient eurekaClient;
+    private static class EurekaHealthStatusInformingApplicationEventListener
+            implements ApplicationEventListener<HealthCheckStatusChangedEvent>, LifecycleListener {
+
+        @com.google.inject.Inject(optional=true)
+        private ApplicationEventDispatcher eventDispatcher;
+        @Inject private ApplicationInfoManager applicationInfoManager;
+        @Inject private HealthCheckAggregator healthCheckAggregator;
+        @Inject private EurekaClient eurekaClient;
         
-        @Inject
-        public EurekaHealthStatusInformingApplicationEventListener(ApplicationEventDispatcher eventDispatcher,
-                HealthCheckAggregator healthCheckAggregator, EurekaClient eurekaClient,
-                ApplicationInfoManager applicationInfoManager) {
-            this.eventDispatcher = eventDispatcher;
-            this.applicationInfoManager = applicationInfoManager;
-            this.eurekaClient = eurekaClient;
-            this.healthCheckAggregator = healthCheckAggregator;
-        }
+  
     
         @PostConstruct
         public void init() throws InterruptedException, ExecutionException {
-            applicationInfoManager.registerStatusChangeListener(new StatusChangeListener() {
+            if(eventDispatcher != null) {
+                applicationInfoManager.registerStatusChangeListener(new StatusChangeListener() {
 
-                @Override
-                public void notify(StatusChangeEvent statusChangeEvent) {
-                    eventDispatcher.publishEvent(new EurekaStatusChangeEvent(statusChangeEvent));
-                }
+                    @Override
+                    public void notify(StatusChangeEvent statusChangeEvent) {
+                        eventDispatcher.publishEvent(new EurekaStatusChangeEvent(statusChangeEvent));
+                    }
 
-                @Override
-                public String getId() {
-                    return "eurekaHealthStatusBridgeModuleStatusChangeListener";
-                }
-            });
-
+                    @Override
+                    public String getId() {
+                        return "eurekaHealthStatusBridgeModuleStatusChangeListener";
+                    }
+                });
+            }
+        }
+        
+        @Override
+        public void onStarted() {
             eurekaClient.registerHealthCheck(new HealthCheckHandler() {
                 @Override
                 public InstanceStatus getStatus(InstanceStatus currentStatus) {
@@ -84,6 +93,9 @@ public class EurekaHealthStatusBridgeModule extends AbstractModule {
                 }
             });
         }
+
+        @Override
+        public void onStopped(Throwable error) { }
     
         private static class EurekaStatusChangeEvent extends StatusChangeEvent implements ApplicationEvent {
             public EurekaStatusChangeEvent(StatusChangeEvent event) {
