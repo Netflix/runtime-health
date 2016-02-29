@@ -30,8 +30,6 @@ import com.netflix.discovery.StatusChangeEvent;
 import com.netflix.governator.event.ApplicationEvent;
 import com.netflix.governator.event.ApplicationEventDispatcher;
 import com.netflix.governator.event.ApplicationEventListener;
-import com.netflix.governator.event.ApplicationEventModule;
-import com.netflix.governator.event.guava.GuavaApplicationEventModule;
 import com.netflix.governator.spi.LifecycleListener;
 import com.netflix.runtime.health.api.HealthCheckAggregator;
 import com.netflix.runtime.health.api.HealthCheckStatus;
