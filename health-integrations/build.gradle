@@ -7,4 +7,5 @@ dependencies {
     compile "com.netflix.eureka:eureka-client:${eurekaVersion}", optional
     
     testCompile "com.netflix.governator:governator-core:${governatorVersion}"
+    testCompile "org.mockito:mockito-core:1.9.5"
 }
