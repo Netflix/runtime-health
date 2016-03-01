@@ -15,7 +15,7 @@ com.netflix.runtime:health-api
 # core implementation of runtime-health for applications and services
 com.netflix.runtime:health-core
 
-# guice integration with mnodule HealthModule() and netflix archaius2 integration for configuration
+# guice integration with module HealthModule() and netflix archaius2 integration for configuration
 com.netflix.runtime:health-guice
 
 # integration with netflix eureka and bridging of health state and eureka status
