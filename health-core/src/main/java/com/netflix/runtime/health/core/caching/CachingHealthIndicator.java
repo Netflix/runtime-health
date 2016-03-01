@@ -91,6 +91,10 @@ public class CachingHealthIndicator implements HealthIndicator {
         }
 
     }
+    
+    public String getDelegateClassName() {
+        return delegate.getClass().getName();
+    }
 
 }
 

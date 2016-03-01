@@ -118,7 +118,7 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
 	    boolean isHealthy = callbacks.stream()
 		    .map(callback -> {
 		    	Health health = Health.from(callback.getHealthOrTimeout())
-		    			.withDetail(Health.NAME_KEY, callback.getIndicator().getClass().getName())
+		    			.withDetail(Health.NAME_KEY, getIndicatorName(callback.getIndicator()))
 		    			.build();
 		    	healths.add(health);
 		    	return health;
@@ -127,7 +127,10 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
 		    .reduce(true, (a,b) -> a && b); 
 	    return HealthCheckStatus.create(isHealthy, healths);
 	}
-    
+	
+	protected String getIndicatorName(HealthIndicator indicator) {
+	    return indicator.getClass().getName();
+    }
      
     abstract class HealthIndicatorCallbackImpl implements HealthIndicatorCallback {
         private volatile Health health;

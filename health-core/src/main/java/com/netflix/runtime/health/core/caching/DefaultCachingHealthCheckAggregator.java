@@ -31,4 +31,15 @@ public class DefaultCachingHealthCheckAggregator extends SimpleHealthCheckAggreg
                 .collect(Collectors.toList()), aggregatorWaitInterval, aggregatorWaitUnits, eventDispatcher);
     }
 
+    @Override
+    protected String getIndicatorName(HealthIndicator indicator) {
+        if(indicator instanceof CachingHealthIndicator)
+        {
+            return ((CachingHealthIndicator)indicator).getDelegateClassName();
+        }
+        else
+        {
+            return super.getIndicatorName(indicator);
+        }
+    }
 }
