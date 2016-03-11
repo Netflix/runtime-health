@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -54,7 +55,14 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
         this.indicators = new ArrayList<>(indicators);
         this.maxWaitTime = maxWaitTime;
         this.units = units;
-        this.executor = Executors.newSingleThreadScheduledExecutor();
+        this.executor = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {  
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread thread = new Thread(r, "healthIndicatorMonitor");
+                thread.setDaemon(true);
+                return thread;
+            }
+        });
         this.eventDispatcher = eventDispatcher;
         this.previousHealth = new AtomicBoolean();
     }
