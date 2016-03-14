@@ -64,7 +64,8 @@ To register a HealthIndicator simply provide it when installing HealthModule.  I
 ```java
  InjectorBuilder.fromModules(new HealthModule() {
       protected void configureHealth() {
-          bindAdditionalHealthIndicator().to(MyCustomerIndicator.class);
+          bindAdditionalHealthIndicator().to(MyHealthIndicator.class);
+          bindAdditionalHealthIndicator().to(AnotherHealthIndicator.class);  //e.g. if you have a second indicator defined
       }
  }).createInjector()
 ```
