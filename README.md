@@ -69,3 +69,6 @@ To register a HealthIndicator simply provide it when installing HealthModule.  I
       }
  }).createInjector()
 ```
+
+### Additional Integrations
+See [health-integrations](https://github.com/Netflix/runtime-health/tree/master/health-integrations) for additional integrations (e.g. with eureka)
