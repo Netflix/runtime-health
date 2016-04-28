@@ -1,0 +1,85 @@
+/**
+ * Copyright 2016 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.netflix.runtime.health.api;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
+
+public class IndicatorFiltersTest {
+
+    private static class A implements HealthIndicator {
+        public void check(HealthIndicatorCallback healthCallback) {
+            healthCallback.inform(Health.healthy().build());
+        }
+    }
+    
+    private static class B implements HealthIndicator {
+        public void check(HealthIndicatorCallback healthCallback) {
+            healthCallback.inform(Health.healthy().build());
+        }
+    }
+    
+    private static class C implements HealthIndicator {
+        public void check(HealthIndicatorCallback healthCallback) {
+            healthCallback.inform(Health.healthy().build());
+        }
+    }
+    
+    @Test
+    public void testInclude() {
+        assertTrue(IndicatorFilters.includes(A.class.getName(), B.class.getName()).build().matches(new A()));
+        assertTrue(IndicatorFilters.includes(A.class.getName(), B.class.getName()).build().matches(new B()));
+        assertFalse(IndicatorFilters.includes(A.class.getName(), B.class.getName()).build().matches(new C()));
+    }
+    
+    @Test
+    public void testAdditiveInclude() {
+        assertTrue(IndicatorFilters.includes(A.class.getName()).includes(B.class.getName()).build().matches(new A()));
+        assertTrue(IndicatorFilters.includes(A.class.getName()).includes(B.class.getName()).build().matches(new B()));
+        assertFalse(IndicatorFilters.includes(A.class.getName()).includes(B.class.getName()).build().matches(new C()));
+    }
+    
+    @Test
+    public void testExclude() {
+        assertFalse(IndicatorFilters.excludes(A.class.getName(), B.class.getName()).build().matches(new A()));
+        assertFalse(IndicatorFilters.excludes(A.class.getName(), B.class.getName()).build().matches(new B()));
+        assertTrue(IndicatorFilters.excludes(A.class.getName(), B.class.getName()).build().matches(new C()));
+    }
+    
+    @Test
+    public void testAdditiveExclude() {
+        assertFalse(IndicatorFilters.excludes(A.class.getName()).excludes(B.class.getName()).build().matches(new A()));
+        assertFalse(IndicatorFilters.excludes(A.class.getName()).excludes(B.class.getName()).build().matches(new B()));
+        assertTrue(IndicatorFilters.excludes(A.class.getName()).excludes(B.class.getName()).build().matches(new C()));
+    }
+    
+    @Test
+    public void testIncludesAndExcludes() {
+        assertTrue(IndicatorFilters.includes(A.class.getName()).excludes(B.class.getName()).build().matches(new A()));
+        assertFalse(IndicatorFilters.includes(A.class.getName()).excludes(B.class.getName()).build().matches(new B()));
+        assertFalse(IndicatorFilters.includes(A.class.getName()).excludes(B.class.getName()).build().matches(new C()));
+    }
+    
+    @Test
+    public void testExcludeBeatsInclude() {
+        assertFalse(IndicatorFilters.includes(A.class.getName()).excludes(A.class.getName()).build().matches(new A()));
+    }
+}
+
+
+
