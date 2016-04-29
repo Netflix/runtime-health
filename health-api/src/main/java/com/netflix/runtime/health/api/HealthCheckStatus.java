@@ -45,14 +45,14 @@ public class HealthCheckStatus {
     }
 
     /**
-     * Health results returned by instances of {@link HealthIndicator} and not suppressed by an {@link IndicatorFilter}.
+     * Health results returned by instances of {@link HealthIndicator} and not suppressed by an {@link IndicatorMatcher}.
      */
     public List<Health> getHealthResults() {
         return healthResults;
     }
     
     /**
-     * Health results returned by instances of {@link HealthIndicator} but suppressed by an {@link IndicatorFilter}.
+     * Health results returned by instances of {@link HealthIndicator} but suppressed by an {@link IndicatorMatcher}.
      */
     public List<Health> getSuppressedHealthResults() {
         return suppressedHealthResults;

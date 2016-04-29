@@ -32,7 +32,7 @@ import com.netflix.runtime.health.api.Health;
 import com.netflix.runtime.health.api.HealthCheckStatus;
 import com.netflix.runtime.health.api.HealthIndicator;
 import com.netflix.runtime.health.api.HealthIndicatorCallback;
-import com.netflix.runtime.health.api.IndicatorFilters;
+import com.netflix.runtime.health.api.IndicatorMatchers;
 
 public class SimpleHealthCheckAggregatorTest {
 	
@@ -153,7 +153,7 @@ public class SimpleHealthCheckAggregatorTest {
         aggregator = new SimpleHealthCheckAggregator(Arrays.asList(healthy, unhealthy), 10, TimeUnit.MILLISECONDS);
 
         HealthCheckStatus aggregatedHealth = aggregator
-                .check(IndicatorFilters.excludes(unhealthy.getName()).build()).get();
+                .check(IndicatorMatchers.excludes(unhealthy.getName()).build()).get();
         assertTrue(aggregatedHealth.isHealthy());
         assertEquals(1, aggregatedHealth.getHealthResults().size());
         assertEquals(1, aggregatedHealth.getSuppressedHealthResults().size());
@@ -165,7 +165,7 @@ public class SimpleHealthCheckAggregatorTest {
         aggregator = new SimpleHealthCheckAggregator(Arrays.asList(healthy, unhealthy, nonResponsive), 10, TimeUnit.MILLISECONDS);
 
         HealthCheckStatus aggregatedHealth = aggregator
-                .check(IndicatorFilters.includes(healthy.getName()).build()).get();
+                .check(IndicatorMatchers.includes(healthy.getName()).build()).get();
         assertTrue(aggregatedHealth.isHealthy());
         assertEquals(1, aggregatedHealth.getHealthResults().size());
         assertEquals(2, aggregatedHealth.getSuppressedHealthResults().size());
@@ -177,7 +177,7 @@ public class SimpleHealthCheckAggregatorTest {
         aggregator = new SimpleHealthCheckAggregator(Arrays.asList(healthy, unhealthy, nonResponsive), 10, TimeUnit.MILLISECONDS);
 
         HealthCheckStatus aggregatedHealth = aggregator
-                .check(IndicatorFilters
+                .check(IndicatorMatchers
                         .includes(healthy.getName(), unhealthy.getName())
                         .excludes(unhealthy.getName())
                         .build()).get();

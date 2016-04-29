@@ -21,63 +21,58 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Static builder of for creating an {@link IndicatorFilter} instance.
+ * Static builder of for creating an {@link IndicatorMatcher} instance. Excluded 
+ * indicators will take priority over included ones. 
  * 
  * <pre>
- *  IndicatorFilters.includes(someIndicatorInstance)
+ *  IndicatorMatchers.includes(someIndicatorInstance)
  *                  .excludes("someIndicatorName")
  *                  .build();
  * </pre>
  */
-public class IndicatorFilters {
+public class IndicatorMatchers {
     
-    public static IndicatorFilterBuilder includes(String... indicatorNames) {
-        return new IndicatorFilterBuilder().includes(indicatorNames);
+    public static IndicatorMatcherBuilder includes(String... indicatorNames) {
+        return new IndicatorMatcherBuilder().includes(indicatorNames);
     }
     
-    public static IndicatorFilterBuilder excludes(String... indicatorNames) {
-        return new IndicatorFilterBuilder().excludes(indicatorNames);
+    public static IndicatorMatcherBuilder excludes(String... indicatorNames) {
+        return new IndicatorMatcherBuilder().excludes(indicatorNames);
     }
     
-    public static IndicatorFilter build() {
+    public static IndicatorMatcher build() {
         return i -> true;
     }
 
-    public static class IndicatorFilterBuilder {
+    public static class IndicatorMatcherBuilder {
         
         public final List<String> includedIndicatorNames;
         public final List<String> excludedIndicatorNames;
         
-        public IndicatorFilterBuilder() {
+        public IndicatorMatcherBuilder() {
             this.includedIndicatorNames = new ArrayList<>();
             this.excludedIndicatorNames = new ArrayList<>();
         }
         
-        public IndicatorFilterBuilder includes(String... indicatorNames) {
+        public IndicatorMatcherBuilder includes(String... indicatorNames) {
             if (indicatorNames != null) {
                 includedIndicatorNames.addAll(Arrays.asList(indicatorNames));
             }
             return this;
         }
         
-        public IndicatorFilterBuilder excludes(String... indicatorNames) {
+        public IndicatorMatcherBuilder excludes(String... indicatorNames) {
             if (indicatorNames != null) {
                 excludedIndicatorNames.addAll(Arrays.asList(indicatorNames));
             }
             return this;
         }
         
-        public IndicatorFilter build() {
-            return indicatorName -> {
-               Optional<Boolean> include = includedIndicatorNames.stream().map(included -> indicatorName.equals(included)).reduce((a,b) -> a || b);
-               Optional<Boolean> exclude = excludedIndicatorNames.stream().map(excluded -> indicatorName.equals(excluded)).reduce((a,b) -> a || b);
-               if(exclude.isPresent() && exclude.get()) {
-                   return false;
-               }
-               if(include.isPresent() && !include.get()) {
-                   return false;
-               }
-               return true;
+        public IndicatorMatcher build() {
+            return indicator -> {
+                return excludedIndicatorNames.stream().noneMatch(i -> indicator.getName().equals(i))
+                        && (includedIndicatorNames.isEmpty()
+                                || includedIndicatorNames.stream().anyMatch(indicator.getName()::equals));
             };
         }
         

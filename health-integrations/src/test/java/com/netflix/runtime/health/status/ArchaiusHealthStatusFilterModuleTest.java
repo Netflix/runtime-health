@@ -30,7 +30,7 @@ import com.netflix.governator.LifecycleInjector;
 import com.netflix.runtime.health.api.Health;
 import com.netflix.runtime.health.api.HealthIndicator;
 import com.netflix.runtime.health.api.HealthIndicatorCallback;
-import com.netflix.runtime.health.api.IndicatorFilter;
+import com.netflix.runtime.health.api.IndicatorMatcher;
 
 public class ArchaiusHealthStatusFilterModuleTest {
 
@@ -58,56 +58,56 @@ public class ArchaiusHealthStatusFilterModuleTest {
     
     private LifecycleInjector injector;
     private SettableConfig config;
-    private IndicatorFilter filter;
+    private IndicatorMatcher matcher;
    
     
     @Before
     public void init() {
         injector = InjectorBuilder.fromModules(new ArchaiusModule(), new ArchaiusHealthStatusFilterModule()).createInjector();
         config = injector.getInstance(Key.get(SettableConfig.class, RuntimeLayer.class));
-        filter = injector.getInstance(IndicatorFilter.class);
+        matcher = injector.getInstance(IndicatorMatcher.class);
     }
 
     @Test
     public void testDefault() {
-        assertTrue(filter.matches(new A()));
-        assertTrue(filter.matches(new B()));
+        assertTrue(matcher.matches(new A()));
+        assertTrue(matcher.matches(new B()));
     }
     
     @Test
     public void testInclusion() {
         config.setProperty("health.status.indicators.include", "A");
-        assertTrue(filter.matches(new A()));
-        assertFalse(filter.matches(new B()));
+        assertTrue(matcher.matches(new A()));
+        assertFalse(matcher.matches(new B()));
         
         config.setProperty("health.status.indicators.include", "B");
-        assertFalse(filter.matches(new A()));
-        assertTrue(filter.matches(new B()));
+        assertFalse(matcher.matches(new A()));
+        assertTrue(matcher.matches(new B()));
         
         config.setProperty("health.status.indicators.include", "A,B");
-        assertTrue(filter.matches(new A()));
-        assertTrue(filter.matches(new B()));
+        assertTrue(matcher.matches(new A()));
+        assertTrue(matcher.matches(new B()));
     }
     
     @Test
     public void testExclusion() {
         config.setProperty("health.status.indicators.exclude", "A");
-        assertFalse(filter.matches(new A()));
-        assertTrue(filter.matches(new B()));
+        assertFalse(matcher.matches(new A()));
+        assertTrue(matcher.matches(new B()));
         
         config.setProperty("health.status.indicators.exclude", "B");
-        assertTrue(filter.matches(new A()));
-        assertFalse(filter.matches(new B()));
+        assertTrue(matcher.matches(new A()));
+        assertFalse(matcher.matches(new B()));
         
         config.setProperty("health.status.indicators.exclude", "A,B");
-        assertFalse(filter.matches(new A()));
-        assertFalse(filter.matches(new B()));
+        assertFalse(matcher.matches(new A()));
+        assertFalse(matcher.matches(new B()));
     }
     
     @Test
     public void testStringSplittingProducesNoWeirdEffects() {
         config.setProperty("health.status.indicators.exclude", ",,A,,");
-        assertFalse(filter.matches(new A()));
-        assertTrue(filter.matches(new B()));
+        assertFalse(matcher.matches(new A()));
+        assertTrue(matcher.matches(new B()));
     }
 }

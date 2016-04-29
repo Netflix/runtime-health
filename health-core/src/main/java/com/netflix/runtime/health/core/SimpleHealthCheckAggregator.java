@@ -34,8 +34,8 @@ import com.netflix.runtime.health.api.HealthCheckAggregator;
 import com.netflix.runtime.health.api.HealthCheckStatus;
 import com.netflix.runtime.health.api.HealthIndicator;
 import com.netflix.runtime.health.api.HealthIndicatorCallback;
-import com.netflix.runtime.health.api.IndicatorFilter;
-import com.netflix.runtime.health.api.IndicatorFilters;
+import com.netflix.runtime.health.api.IndicatorMatcher;
+import com.netflix.runtime.health.api.IndicatorMatchers;
 
 /**
  */
@@ -71,10 +71,10 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
     
     @Override
     public CompletableFuture<HealthCheckStatus> check() {
-        return check(IndicatorFilters.build());
+        return check(IndicatorMatchers.build());
     }
 
-    public CompletableFuture<HealthCheckStatus> check(IndicatorFilter filter) {
+    public CompletableFuture<HealthCheckStatus> check(IndicatorMatcher matcher) {
         final List<HealthIndicatorCallbackImpl> callbacks = new ArrayList<>(indicators.size());
         final CompletableFuture<HealthCheckStatus> future = new CompletableFuture<HealthCheckStatus>();
         final AtomicInteger counter = new AtomicInteger(indicators.size());
@@ -89,7 +89,7 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
         
         List<CompletableFuture<?>> futures = indicators.stream().map(indicator -> {
 
-            HealthIndicatorCallbackImpl callback = new HealthIndicatorCallbackImpl(indicator, !filter.matches(indicator)) {
+            HealthIndicatorCallbackImpl callback = new HealthIndicatorCallbackImpl(indicator, !matcher.matches(indicator)) {
                 @Override
                 public void inform(Health status) {
                     setHealth(status);
@@ -138,8 +138,7 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
 		    	if(callback.isSuppressed()) {
 		    	    suppressedHealths.add(health);
 		    	    return Health.healthy().build();
-		    	}
-		    	else {
+		    	} else {
 		    	    healths.add(health);
 		    	    return health;
 		    	}

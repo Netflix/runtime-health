@@ -26,8 +26,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.netflix.runtime.health.api.HealthCheckAggregator;
 import com.netflix.runtime.health.api.HealthCheckStatus;
-import com.netflix.runtime.health.api.IndicatorFilter;
-import com.netflix.runtime.health.status.ArchaiusHealthStatusFilterModule;
+import com.netflix.runtime.health.api.IndicatorMatcher;
 
 @Singleton
 public final class HealthStatusServlet extends HttpServlet {
@@ -40,14 +39,14 @@ public final class HealthStatusServlet extends HttpServlet {
      * See {@link ArchaiusHealthStatusFilterModule} for default implementation.
      */
     @com.google.inject.Inject(optional=true)
-    private IndicatorFilter filter;
+    private IndicatorMatcher matcher;
     
     @Override
     protected void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws IOException, ServletException {
         HealthCheckStatus health;
         try {
-            if(filter != null ) {
-                health = this.healthCheckAggregator.check(filter).get();
+            if(matcher != null ) {
+                health = this.healthCheckAggregator.check(matcher).get();
             } else {
                 health = this.healthCheckAggregator.check().get();
             }

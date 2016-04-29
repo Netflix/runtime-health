@@ -16,8 +16,8 @@ InjectorBuilder
     .createInjector();
 ```
 
-### Archaius2-backed IndicatorFilter
-Filtering of which HealthIndicators will be used in communicating the health status of the application is provided via an [Archaius2](https://github.com/Netflix/archaius/tree/2.x) implementation of [IndicatorFilter](https://github.com/Netflix/runtime-health/blob/addIndicatorFilterSupport/health-api/src/main/java/com/netflix/runtime/health/api/IndicatorFilter.java).
+### Archaius2-backed IndicatorMatcher
+Filtering of which HealthIndicators will be used in communicating the health status of the application is provided via an [Archaius2](https://github.com/Netflix/archaius/tree/2.x) implementation of [IndicatorMatcher](https://github.com/Netflix/runtime-health/tree/health-api/src/main/java/com/netflix/runtime/health/api/IndicatorMatcher.java).
 
 ```
 InjectorBuilder
@@ -31,10 +31,10 @@ InjectorBuilder
     .createInjector();
 ```
 
-Indicators can now be included/excluded by setting the following properties in Archaius2.
+Indicators can now be included/excluded by setting the following properties in Archaius2. Excluded indicators will take priority over included ones.
 ```
-health.status.indicators.include=com.myproject.MyFilter
-health.status.indicators.exclude=com.myproject.DontIncludeThisFilter
+health.status.indicators.include=com.myproject.MyIndicator
+health.status.indicators.exclude=com.myproject.DontIncludeThisIndicator
 ```
 
 

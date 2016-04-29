@@ -21,14 +21,14 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.netflix.archaius.ConfigProxyFactory;
 import com.netflix.runtime.health.api.HealthIndicator;
-import com.netflix.runtime.health.api.IndicatorFilter;
-import com.netflix.runtime.health.api.IndicatorFilters;
+import com.netflix.runtime.health.api.IndicatorMatcher;
+import com.netflix.runtime.health.api.IndicatorMatchers;
 import com.netflix.runtime.health.eureka.EurekaHealthStatusBridgeModule;
 import com.netflix.runtime.health.servlet.HealthStatusServlet;
 
 /***
- * Installing this module will provide an implementation of {@link IndicatorFilter} backed by Archaius2. 
- * This {@link IndicatorFilter} will be used by both the {@link EurekaHealthStatusBridgeModule} and
+ * Installing this module will provide an implementation of {@link IndicatorMatcher} backed by Archaius2. 
+ * This {@link IndicatorMatcher} will be used by both the {@link EurekaHealthStatusBridgeModule} and
  * the {@link HealthStatusServlet} to specify which {@link HealthIndicator}s will be used in 
  * determining the healthiness of your application. 
  */
@@ -46,11 +46,11 @@ public class ArchaiusHealthStatusFilterModule extends AbstractModule {
     
     @Provides
     @Singleton
-    public IndicatorFilter indicatorFilter(HealthStatusInclusionConfiguration config) {
+    public IndicatorMatcher IndicatorMatcher(HealthStatusInclusionConfiguration config) {
         return new ArchaiusDrivenStatusFilter(config);
     }
 
-    private static class ArchaiusDrivenStatusFilter implements IndicatorFilter {
+    private static class ArchaiusDrivenStatusFilter implements IndicatorMatcher {
 
         private final HealthStatusInclusionConfiguration config;
 
@@ -59,11 +59,11 @@ public class ArchaiusHealthStatusFilterModule extends AbstractModule {
         }
 
         @Override
-        public boolean matches(String indicatorName) {
-            return IndicatorFilters
+        public boolean matches(HealthIndicator indicator) {
+            return IndicatorMatchers
                     .includes(config.includedIndicators())
                     .excludes(config.excludedIndicators()).build()
-                    .matches(indicatorName);
+                    .matches(indicator);
         }
     }
     

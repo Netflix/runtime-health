@@ -33,9 +33,8 @@ import com.netflix.governator.event.ApplicationEventListener;
 import com.netflix.governator.spi.LifecycleListener;
 import com.netflix.runtime.health.api.HealthCheckAggregator;
 import com.netflix.runtime.health.api.HealthCheckStatus;
-import com.netflix.runtime.health.api.IndicatorFilter;
+import com.netflix.runtime.health.api.IndicatorMatcher;
 import com.netflix.runtime.health.core.HealthCheckStatusChangedEvent;
-import com.netflix.runtime.health.status.ArchaiusHealthStatusFilterModule;
 
 /**
  * Installing this module couples Eureka status (UP/DOWN/STARTING) to {@link HealthCheckStatus}. After injector creation, Eureka will be provided
@@ -70,7 +69,7 @@ public class EurekaHealthStatusBridgeModule extends AbstractModule {
          * See {@link ArchaiusHealthStatusFilterModule} for default implementation.
          */
         @com.google.inject.Inject(optional=true)
-        private IndicatorFilter filter;
+        private IndicatorMatcher matcher;
 
         @PostConstruct
         public void init() throws InterruptedException, ExecutionException {
@@ -96,7 +95,7 @@ public class EurekaHealthStatusBridgeModule extends AbstractModule {
                 @Override
                 public InstanceStatus getStatus(InstanceStatus currentStatus) {
                     try {
-                        if(filter != null) {
+                        if(matcher != null) {
                             return getInstanceStatusForHealth(healthCheckAggregator.check().get());
                         } else {
                             return getInstanceStatusForHealth(healthCheckAggregator.check().get());

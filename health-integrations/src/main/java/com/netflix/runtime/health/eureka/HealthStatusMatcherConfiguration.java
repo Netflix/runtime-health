@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.runtime.health.api;
+package com.netflix.runtime.health.eureka;
 
-/**
- * A filter used when invoking {@link HealthCheckAggregator}.check() to explicitly include/exclude which
- * indicators should be used when calculating the healthiness of the application. See {@link IndicatorFilters}
- * for creating IndicatorFilters programmatically. 
- */
-public interface IndicatorFilter {
+import java.util.List;
 
-    default boolean matches(HealthIndicator indicator) {
-        return matches(indicator.getName());
-    }
+import com.netflix.archaius.api.annotations.Configuration;
 
-    boolean matches(String indicatorName);
+@Configuration(prefix="health.status")
+public interface HealthStatusMatcherConfiguration {
+    
+    List<Class<?>> includeIndicators();
+    
+    List<Class<?>> excludeIndicators();
 
 }
