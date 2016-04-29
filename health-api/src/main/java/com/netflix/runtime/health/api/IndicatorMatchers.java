@@ -41,7 +41,7 @@ public class IndicatorMatchers {
     }
     
     public static IndicatorMatcher build() {
-        return i -> true;
+        return unused -> true;
     }
 
     public static class IndicatorMatcherBuilder {
