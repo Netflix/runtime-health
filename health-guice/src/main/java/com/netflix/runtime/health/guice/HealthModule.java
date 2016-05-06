@@ -25,6 +25,7 @@ import javax.inject.Singleton;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
+import com.google.inject.Key;
 import com.google.inject.Provides;
 import com.google.inject.binder.LinkedBindingBuilder;
 import com.google.inject.multibindings.Multibinder;
@@ -85,7 +86,7 @@ public class HealthModule extends AbstractModule {
         @Override
         protected void configure() {
             install(new GuavaApplicationEventModule());
-            install(new ArchaiusModule());
+            requireBinding(Key.get(ConfigProxyFactory.class));
             bind(HealthCheckAggregator.class).toProvider(HealthProvider.class).asEagerSingleton();
         }
         

@@ -73,4 +73,11 @@ public interface HealthIndicator {
      */
     void check(HealthIndicatorCallback healthCallback);
 
+    /**
+     * Name used in displaying and filtering (see {@link IndicatorMatcher}) HealthIndicators. 
+     */
+    default String getName() {
+        return this.getClass().getName();
+    }
+
 }

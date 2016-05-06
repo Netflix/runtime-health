@@ -30,16 +30,4 @@ public class DefaultCachingHealthCheckAggregator extends SimpleHealthCheckAggreg
         super(indicators.stream().map(delegate -> CachingHealthIndicator.wrap(delegate, cacheInterval, cacheIntervalUnits))
                 .collect(Collectors.toList()), aggregatorWaitInterval, aggregatorWaitUnits, eventDispatcher);
     }
-
-    @Override
-    protected String getIndicatorName(HealthIndicator indicator) {
-        if(indicator instanceof CachingHealthIndicator)
-        {
-            return ((CachingHealthIndicator)indicator).getDelegateClassName();
-        }
-        else
-        {
-            return super.getIndicatorName(indicator);
-        }
-    }
 }

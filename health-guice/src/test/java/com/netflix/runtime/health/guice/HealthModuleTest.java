@@ -23,6 +23,7 @@ import org.junit.Test;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.Multibinder;
+import com.netflix.archaius.guice.ArchaiusModule;
 import com.netflix.governator.InjectorBuilder;
 import com.netflix.governator.LifecycleInjector;
 import com.netflix.runtime.health.api.Health;
@@ -49,7 +50,7 @@ public class HealthModuleTest {
     
     @Test
     public void testNoIndicators() throws InterruptedException, ExecutionException {
-        LifecycleInjector injector = InjectorBuilder.fromModules(new HealthModule()).createInjector();
+        LifecycleInjector injector = InjectorBuilder.fromModules(new HealthModule(), new ArchaiusModule()).createInjector();
         HealthCheckAggregator aggregator = injector.getInstance(HealthCheckAggregator.class);
         assertNotNull(aggregator);
         HealthCheckStatus healthCheckStatus = aggregator.check().get();
@@ -59,7 +60,7 @@ public class HealthModuleTest {
     
     @Test
     public void testMultipleIndicators() throws InterruptedException, ExecutionException {
-        LifecycleInjector injector = InjectorBuilder.fromModules(new HealthModule(), new AbstractModule() {            
+        LifecycleInjector injector = InjectorBuilder.fromModules(new HealthModule(), new ArchaiusModule(), new AbstractModule() {            
             @Override
             protected void configure() {
                 Multibinder<HealthIndicator> healthIndicatorBinder = Multibinder.newSetBinder(binder(), HealthIndicator.class);
@@ -86,7 +87,7 @@ public class HealthModuleTest {
             protected void configureHealth() {
                 bindAdditionalHealthIndicator().toInstance(healthy);
             }
-        }).createInjector();
+        }, new ArchaiusModule()).createInjector();
         HealthCheckAggregator aggregator = injector.getInstance(HealthCheckAggregator.class);
         assertNotNull(aggregator);
         HealthCheckStatus healthCheckStatus = aggregator.check().get();
@@ -106,7 +107,7 @@ public class HealthModuleTest {
             protected void configureHealth() {
                 bindAdditionalHealthIndicator().toInstance(unhealthy);
             }
-        }).createInjector();
+        }, new ArchaiusModule()).createInjector();
         HealthCheckAggregator aggregator = injector.getInstance(HealthCheckAggregator.class);
         assertNotNull(aggregator);
         HealthCheckStatus healthCheckStatus = aggregator.check().get();

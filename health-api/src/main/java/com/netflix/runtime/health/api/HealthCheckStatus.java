@@ -26,26 +26,48 @@ public class HealthCheckStatus {
     private final boolean isHealthy;
 
     private final List<Health> healthResults;
+    private final List<Health> suppressedHealthResults;
 
     public HealthCheckStatus(boolean isHealthy, List<Health> indicators) {
         this.isHealthy = isHealthy;
         this.healthResults = new ArrayList<>(indicators);
+        this.suppressedHealthResults = new ArrayList<>();
+    }
+    
+    public HealthCheckStatus(boolean isHealthy, List<Health> indicators, List<Health> suppressedIndicators) {
+        this.isHealthy = isHealthy;
+        this.healthResults = new ArrayList<>(indicators);
+        this.suppressedHealthResults = new ArrayList<>(suppressedIndicators);
     }
 
     public boolean isHealthy() {
         return isHealthy;
     }
 
+    /**
+     * Health results returned by instances of {@link HealthIndicator} and not suppressed by an {@link IndicatorMatcher}.
+     */
     public List<Health> getHealthResults() {
         return healthResults;
+    }
+    
+    /**
+     * Health results returned by instances of {@link HealthIndicator} but suppressed by an {@link IndicatorMatcher}.
+     */
+    public List<Health> getSuppressedHealthResults() {
+        return suppressedHealthResults;
     }
 
     public static HealthCheckStatus create(boolean isHealthy, List<Health> indicators) {
         return new HealthCheckStatus(isHealthy, indicators);
     }
     
+    public static HealthCheckStatus create(boolean isHealthy, List<Health> indicators, List<Health> suppressedIndicators) {
+        return new HealthCheckStatus(isHealthy, indicators, suppressedIndicators);
+    }
+    
     @Override
     public String toString() {
-        return "HealthCheckStatus[isHealthy=" + isHealthy + ", indicators=" + healthResults + "]";
+        return "HealthCheckStatus[isHealthy=" + isHealthy + ", indicators=" + healthResults + ", + suppressedIndicators=" + suppressedHealthResults + "]";
     }
 }
