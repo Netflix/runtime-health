@@ -21,6 +21,7 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Provider;
 import com.netflix.appinfo.ApplicationInfoManager;
 import com.netflix.appinfo.ApplicationInfoManager.StatusChangeListener;
 import com.netflix.appinfo.HealthCheckHandler;
@@ -57,13 +58,13 @@ public class EurekaHealthStatusBridgeModule extends AbstractModule {
             implements ApplicationEventListener<HealthCheckStatusChangedEvent>, LifecycleListener {
 
         @com.google.inject.Inject(optional = true)
-        private ApplicationEventDispatcher eventDispatcher;
+        private Provider<ApplicationEventDispatcher> eventDispatcher;
         @Inject
-        private ApplicationInfoManager applicationInfoManager;
+        private Provider<ApplicationInfoManager> applicationInfoManager;
         @Inject
-        private HealthCheckAggregator healthCheckAggregator;
+        private Provider<HealthCheckAggregator> healthCheckAggregator;
         @Inject
-        private EurekaClient eurekaClient;
+        private Provider<EurekaClient> eurekaClient;
         
         /***
          * See {@link ArchaiusHealthStatusFilterModule} for default implementation.
@@ -74,11 +75,11 @@ public class EurekaHealthStatusBridgeModule extends AbstractModule {
         @PostConstruct
         public void init() throws InterruptedException, ExecutionException {
             if (eventDispatcher != null) {
-                applicationInfoManager.registerStatusChangeListener(new StatusChangeListener() {
+                applicationInfoManager.get().registerStatusChangeListener(new StatusChangeListener() {
 
                     @Override
                     public void notify(StatusChangeEvent statusChangeEvent) {
-                        eventDispatcher.publishEvent(new EurekaStatusChangeEvent(statusChangeEvent));
+                        eventDispatcher.get().publishEvent(new EurekaStatusChangeEvent(statusChangeEvent));
                     }
 
                     @Override
@@ -91,14 +92,14 @@ public class EurekaHealthStatusBridgeModule extends AbstractModule {
 
         @Override
         public void onStarted() {
-            eurekaClient.registerHealthCheck(new HealthCheckHandler() {
+            eurekaClient.get().registerHealthCheck(new HealthCheckHandler() {
                 @Override
                 public InstanceStatus getStatus(InstanceStatus currentStatus) {
                     try {
                         if(matcher != null) {
-                            return getInstanceStatusForHealth(healthCheckAggregator.check().get());
+                            return getInstanceStatusForHealth(healthCheckAggregator.get().check().get());
                         } else {
-                            return getInstanceStatusForHealth(healthCheckAggregator.check().get());
+                            return getInstanceStatusForHealth(healthCheckAggregator.get().check().get());
                         }
                     } catch (Exception e) {
                         throw new RuntimeException(e);
@@ -123,7 +124,7 @@ public class EurekaHealthStatusBridgeModule extends AbstractModule {
 
         @Override
         public void onEvent(HealthCheckStatusChangedEvent event) {
-            applicationInfoManager.getInfo().setStatus(getInstanceStatusForHealth(event.getHealth()));
+            applicationInfoManager.get().getInfo().setStatus(getInstanceStatusForHealth(event.getHealth()));
         }
 
         private InstanceStatus getInstanceStatusForHealth(HealthCheckStatus health) {
