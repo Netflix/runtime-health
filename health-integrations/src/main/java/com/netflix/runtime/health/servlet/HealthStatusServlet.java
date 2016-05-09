@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.netflix.runtime.health.api.HealthCheckAggregator;
 import com.netflix.runtime.health.api.HealthCheckStatus;
 import com.netflix.runtime.health.api.IndicatorMatcher;
+import com.netflix.runtime.health.status.ArchaiusHealthStatusFilterModule;
 
 @Singleton
 public final class HealthStatusServlet extends HttpServlet {
