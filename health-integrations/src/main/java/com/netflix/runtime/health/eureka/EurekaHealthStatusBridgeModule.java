@@ -92,20 +92,8 @@ public class EurekaHealthStatusBridgeModule extends AbstractModule {
 
         @Override
         public void onStarted() {
-            eurekaClient.get().registerHealthCheck(new HealthCheckHandler() {
-                @Override
-                public InstanceStatus getStatus(InstanceStatus currentStatus) {
-                    try {
-                        if(matcher != null) {
-                            return getInstanceStatusForHealth(healthCheckAggregator.get().check().get());
-                        } else {
-                            return getInstanceStatusForHealth(healthCheckAggregator.get().check().get());
-                        }
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            });
+            eurekaClient.get().registerHealthCheck(
+                    new HealthAggregatorEurekaHealthCheckHandler(healthCheckAggregator.get(), matcher));
         }
 
         @Override
