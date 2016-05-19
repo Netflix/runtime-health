@@ -100,7 +100,7 @@ public class EurekaHealthStatusBridgeModule extends AbstractModule {
         public void onStopped(Throwable error) {
         }
 
-        private static class EurekaStatusChangeEvent extends StatusChangeEvent implements ApplicationEvent {
+        public class EurekaStatusChangeEvent extends StatusChangeEvent implements ApplicationEvent {
             public EurekaStatusChangeEvent(StatusChangeEvent event) {
                 this(event.getPreviousStatus(), event.getStatus());
             }
