@@ -100,16 +100,6 @@ public class EurekaHealthStatusBridgeModule extends AbstractModule {
         public void onStopped(Throwable error) {
         }
 
-        private static class EurekaStatusChangeEvent extends StatusChangeEvent implements ApplicationEvent {
-            public EurekaStatusChangeEvent(StatusChangeEvent event) {
-                this(event.getPreviousStatus(), event.getStatus());
-            }
-
-            public EurekaStatusChangeEvent(InstanceStatus previous, InstanceStatus current) {
-                super(previous, current);
-            }
-        }
-
         @Override
         public void onEvent(HealthCheckStatusChangedEvent event) {
             applicationInfoManager.get().getInfo().setStatus(getInstanceStatusForHealth(event.getHealth()));
