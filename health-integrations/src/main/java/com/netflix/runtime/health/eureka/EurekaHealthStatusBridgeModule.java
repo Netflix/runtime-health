@@ -28,7 +28,6 @@ import com.netflix.appinfo.HealthCheckHandler;
 import com.netflix.appinfo.InstanceInfo.InstanceStatus;
 import com.netflix.discovery.EurekaClient;
 import com.netflix.discovery.StatusChangeEvent;
-import com.netflix.governator.event.ApplicationEvent;
 import com.netflix.governator.event.ApplicationEventDispatcher;
 import com.netflix.governator.event.ApplicationEventListener;
 import com.netflix.governator.spi.LifecycleListener;
@@ -67,7 +66,7 @@ public class EurekaHealthStatusBridgeModule extends AbstractModule {
         private Provider<EurekaClient> eurekaClient;
         
         /***
-         * See {@link ArchaiusHealthStatusFilterModule} for default implementation.
+         * See {@link com.netflix.runtime.health.status.ArchaiusHealthStatusFilterModule} for default implementation.
          */
         @com.google.inject.Inject(optional=true)
         private IndicatorMatcher matcher;
@@ -102,7 +101,7 @@ public class EurekaHealthStatusBridgeModule extends AbstractModule {
 
         @Override
         public void onEvent(HealthCheckStatusChangedEvent event) {
-            applicationInfoManager.get().getInfo().setStatus(getInstanceStatusForHealth(event.getHealth()));
+            applicationInfoManager.get().setInstanceStatus(getInstanceStatusForHealth(event.getHealth()));
         }
 
         private InstanceStatus getInstanceStatusForHealth(HealthCheckStatus health) {
