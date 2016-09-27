@@ -25,7 +25,6 @@ import com.google.inject.Provider;
 import com.netflix.appinfo.ApplicationInfoManager;
 import com.netflix.appinfo.ApplicationInfoManager.StatusChangeListener;
 import com.netflix.appinfo.HealthCheckHandler;
-import com.netflix.appinfo.InstanceInfo.InstanceStatus;
 import com.netflix.discovery.EurekaClient;
 import com.netflix.discovery.StatusChangeEvent;
 import com.netflix.governator.event.ApplicationEventDispatcher;
@@ -94,14 +93,6 @@ public class EurekaHealthStatusBridgeModule extends AbstractModule {
 
         @Override
         public void onStopped(Throwable error) {
-        }
-
-        private InstanceStatus getInstanceStatusForHealth(HealthCheckStatus health) {
-            if (health.isHealthy()) {
-                return InstanceStatus.UP;
-            } else {
-                return InstanceStatus.DOWN;
-            }
         }
     }   
     
