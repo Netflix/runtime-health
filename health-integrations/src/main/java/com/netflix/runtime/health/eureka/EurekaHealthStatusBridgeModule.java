@@ -25,16 +25,13 @@ import com.google.inject.Provider;
 import com.netflix.appinfo.ApplicationInfoManager;
 import com.netflix.appinfo.ApplicationInfoManager.StatusChangeListener;
 import com.netflix.appinfo.HealthCheckHandler;
-import com.netflix.appinfo.InstanceInfo.InstanceStatus;
 import com.netflix.discovery.EurekaClient;
 import com.netflix.discovery.StatusChangeEvent;
 import com.netflix.governator.event.ApplicationEventDispatcher;
-import com.netflix.governator.event.ApplicationEventListener;
 import com.netflix.governator.spi.LifecycleListener;
 import com.netflix.runtime.health.api.HealthCheckAggregator;
 import com.netflix.runtime.health.api.HealthCheckStatus;
 import com.netflix.runtime.health.api.IndicatorMatcher;
-import com.netflix.runtime.health.core.HealthCheckStatusChangedEvent;
 
 /**
  * Installing this module couples Eureka status (UP/DOWN/STARTING) to {@link HealthCheckStatus}. After injector creation, Eureka will be provided
@@ -50,11 +47,10 @@ public class EurekaHealthStatusBridgeModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        bind(ApplicationEventListener.class).to(EurekaHealthStatusInformingApplicationEventListener.class).asEagerSingleton();
+        bind(EurekaHealthStatusInformingApplicationEventListener.class).asEagerSingleton();
     }
 
-    private static class EurekaHealthStatusInformingApplicationEventListener
-            implements ApplicationEventListener<HealthCheckStatusChangedEvent>, LifecycleListener {
+    private static class EurekaHealthStatusInformingApplicationEventListener implements LifecycleListener {
 
         @com.google.inject.Inject(optional = true)
         private Provider<ApplicationEventDispatcher> eventDispatcher;
@@ -97,19 +93,6 @@ public class EurekaHealthStatusBridgeModule extends AbstractModule {
 
         @Override
         public void onStopped(Throwable error) {
-        }
-
-        @Override
-        public void onEvent(HealthCheckStatusChangedEvent event) {
-            applicationInfoManager.get().setInstanceStatus(getInstanceStatusForHealth(event.getHealth()));
-        }
-
-        private InstanceStatus getInstanceStatusForHealth(HealthCheckStatus health) {
-            if (health.isHealthy()) {
-                return InstanceStatus.UP;
-            } else {
-                return InstanceStatus.DOWN;
-            }
         }
     }   
     
