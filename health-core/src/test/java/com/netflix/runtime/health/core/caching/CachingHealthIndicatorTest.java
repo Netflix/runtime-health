@@ -38,8 +38,10 @@ public class CachingHealthIndicatorTest {
 		realCount = new AtomicLong();
 		cachedCount = new AtomicLong();
 		this.testHealthIndicator = new HealthIndicator() {
+			long startTime = System.nanoTime();
 			@Override
 			public void check(HealthIndicatorCallback c) {
+				System.out.println("real call: " + (System.nanoTime() - startTime));
 				realCount.incrementAndGet();
 				c.inform(Health.healthy().build());
 			}
@@ -59,7 +61,9 @@ public class CachingHealthIndicatorTest {
 	public void testWithCaching() {
 		CachingHealthIndicator cachedIndicator = CachingHealthIndicator.wrap(testHealthIndicator, 100, TimeUnit.MILLISECONDS);
 		for (int x = 0; x < 10; x++) {
-			cachedIndicator.check(h -> cachedCount.incrementAndGet());
+			cachedIndicator.check(h -> {
+				cachedCount.incrementAndGet();	
+			});
 		}
 		assertEquals(1, realCount.get());
 		assertEquals(10, cachedCount.get());
@@ -69,14 +73,17 @@ public class CachingHealthIndicatorTest {
 	@Test
 	public void testWithCachingAndExpiry() throws InterruptedException {
 		CachingHealthIndicator cachedIndicator = CachingHealthIndicator.wrap(testHealthIndicator, 100, TimeUnit.MILLISECONDS);
+		long startTime = System.nanoTime();
+		// first real call expected at +000ms, second at +100ms, third at +200ms
 		for (int x = 0; x < 10; x++) {
 			cachedIndicator.check(h -> {
+				System.out.println("cached call: " + (System.nanoTime() - startTime));
 				cachedCount.incrementAndGet();
 			});
 			Thread.sleep(25);
 		}
-		assertEquals(2, realCount.get());
 		assertEquals(10, cachedCount.get());
+		assertEquals(3, realCount.get()); 
 	}
 	
     @Test

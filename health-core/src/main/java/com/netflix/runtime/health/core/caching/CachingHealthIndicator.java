@@ -18,6 +18,7 @@ package com.netflix.runtime.health.core.caching;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.StampedLock;
 
 import com.netflix.runtime.health.api.Health;
 import com.netflix.runtime.health.api.HealthIndicator;
@@ -30,70 +31,70 @@ import com.netflix.runtime.health.api.HealthIndicatorCallback;
  *
  */
 public class CachingHealthIndicator implements HealthIndicator {
-    private final AtomicLong      expireTime = new AtomicLong(0);
-    private final long            interval;
-    private final HealthIndicator delegate;
-    private final AtomicBoolean   busy = new AtomicBoolean();
-    private volatile Health health;
-    
-    private CachingHealthIndicator(HealthIndicator delegate, long interval, TimeUnit units) {
-        this.delegate = delegate;
-        this.interval = TimeUnit.NANOSECONDS.convert(interval, units);
-    }
-    
-    @Override
-    public void check(HealthIndicatorCallback callback) {
-        long lastExpireTime = this.expireTime.get();
-        long currentTime  = System.nanoTime();
-        
-        if (currentTime > lastExpireTime + interval) {
-            long expireTime = currentTime + interval;
-            if (this.expireTime.compareAndSet(lastExpireTime, expireTime)) {
-            	if (busy.compareAndSet(false, true)) {
-            		try {
-            		    CachingHealthIndicatorCallback cachingCallback = new CachingHealthIndicatorCallback(callback);
-            			delegate.check(cachingCallback);
-            			this.health = cachingCallback.getCachedHealth();
-            		}
-            		finally {
-            			busy.set(false);
-            		}
-            	}
-            }
-        }
-        else {
-        	callback.inform(Health.from(health).withDetail(Health.CACHE_KEY, true).build());
-        }
-    }
+	private static class CacheEntry {
+		private final long expirationTime;
+		private final Health health;
 
-    public static CachingHealthIndicator wrap(HealthIndicator delegate, long interval, TimeUnit units) {
-        return new CachingHealthIndicator(delegate, interval, units);
-    }
-    
-    private class CachingHealthIndicatorCallback implements HealthIndicatorCallback {
-        
-        private Health cachedHealth;
-        private final HealthIndicatorCallback delegate;
-        
-        public CachingHealthIndicatorCallback(HealthIndicatorCallback delegate) {
-            this.delegate = delegate;
-        }
-        
-        @Override
-        public void inform(Health status) {
-            this.cachedHealth = status;
-            delegate.inform(status);
-            
-        }
-        
-        public Health getCachedHealth() {
-            return cachedHealth;
-        }
+		CacheEntry(long expirationTime, Health health) {
+			super();
+			this.expirationTime = expirationTime;
+			this.health = health;
+		}
 
-    }
+		long getExpirationTime() {
+			return expirationTime;
+		}
 
-    public String getName() {
-        return delegate.getClass().getName();
-    }
+		Health getHealth() {
+			return health;
+		}
+	}
+
+	private final StampedLock lock;
+	private final long interval;
+	private final HealthIndicator delegate;
+	private volatile CacheEntry cachedHealth;
+
+	private CachingHealthIndicator(HealthIndicator delegate, long interval, TimeUnit units) {
+		this.delegate = delegate;
+		this.interval = TimeUnit.NANOSECONDS.convert(interval, units);
+		this.lock = new StampedLock();
+		this.cachedHealth = new CacheEntry(0L, null);
+	}
+
+	@Override
+	public void check(HealthIndicatorCallback callback) {
+		CacheEntry cacheEntry = this.cachedHealth;		
+		long stamp = lock.tryReadLock();		
+		if (stamp != 0L) {
+			long currentTime = System.nanoTime();
+			if (currentTime > cacheEntry.getExpirationTime()) {
+				stamp = lock.tryConvertToWriteLock(stamp);
+				if (stamp != 0L) {
+					try {
+						delegate.check(h -> {
+							this.cachedHealth = new CacheEntry(
+									currentTime + interval,
+									Health.from(h).withDetail(Health.CACHE_KEY, true).build());
+							callback.inform(h);
+						});
+						return;
+					} finally {
+						lock.unlockWrite(stamp);
+					}
+				}
+			} else {
+				lock.unlockRead(stamp);
+			}
+		}
+		callback.inform(cacheEntry.getHealth());
+	}
+
+	public static CachingHealthIndicator wrap(HealthIndicator delegate, long interval, TimeUnit units) {
+		return new CachingHealthIndicator(delegate, interval, units);
+	}
+
+	public String getName() {
+		return delegate.getName();
+	}
 }
-
