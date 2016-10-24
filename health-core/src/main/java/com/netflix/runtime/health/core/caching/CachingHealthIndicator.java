@@ -13,7 +13,7 @@
 package com.netflix.runtime.health.core.caching;
 
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.StampedLock;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.netflix.runtime.health.api.Health;
 import com.netflix.runtime.health.api.HealthIndicator;
@@ -45,7 +45,7 @@ public class CachingHealthIndicator implements HealthIndicator {
         }
     }
 
-    private final StampedLock lock;
+    private final AtomicBoolean lock;
     private final long interval;
     private final HealthIndicator delegate;
     private volatile CacheEntry cachedHealth;
@@ -53,32 +53,26 @@ public class CachingHealthIndicator implements HealthIndicator {
     private CachingHealthIndicator(HealthIndicator delegate, long interval, TimeUnit units) {
         this.delegate = delegate;
         this.interval = TimeUnit.NANOSECONDS.convert(interval, units);
-        this.lock = new StampedLock();
+        this.lock = new AtomicBoolean(false);
         this.cachedHealth = new CacheEntry(0L, null);
     }
 
     @Override
     public void check(HealthIndicatorCallback callback) {
         CacheEntry cacheEntry = this.cachedHealth;
-        long stamp = lock.tryReadLock();
-        if (stamp != 0L) {
-            long currentTime = System.nanoTime();
-            if (currentTime > cacheEntry.getExpirationTime()) {
-                stamp = lock.tryConvertToWriteLock(stamp);
-                if (stamp != 0L) {
-                    try {
-                        delegate.check(h -> {
-                            this.cachedHealth = new CacheEntry(currentTime + interval,
-                                    Health.from(h).withDetail(Health.CACHE_KEY, true).build());
-                            callback.inform(h);
-                        });
-                        return;
-                    } finally {
-                        lock.unlockWrite(stamp);
-                    }
+        long currentTime = System.nanoTime();
+        if (currentTime > cacheEntry.getExpirationTime()) {
+            if (lock.compareAndSet(false, true)) {
+                try {
+                    delegate.check(h -> {
+                        this.cachedHealth = new CacheEntry(currentTime + interval,
+                                Health.from(h).withDetail(Health.CACHE_KEY, true).build());
+                        callback.inform(h);
+                    });
+                    return;
+                } finally {
+                    lock.set(false);
                 }
-            } else {
-                lock.unlockRead(stamp);
             }
         }
         callback.inform(cacheEntry.getHealth());
