@@ -45,7 +45,7 @@ public class CachingHealthIndicator implements HealthIndicator {
         }
     }
 
-    private final AtomicBoolean lock;
+    private final AtomicBoolean busy;
     private final long interval;
     private final HealthIndicator delegate;
     private volatile CacheEntry cachedHealth;
@@ -53,7 +53,7 @@ public class CachingHealthIndicator implements HealthIndicator {
     private CachingHealthIndicator(HealthIndicator delegate, long interval, TimeUnit units) {
         this.delegate = delegate;
         this.interval = TimeUnit.NANOSECONDS.convert(interval, units);
-        this.lock = new AtomicBoolean(false);
+        this.busy = new AtomicBoolean(false);
         this.cachedHealth = new CacheEntry(0L, null);
     }
 
@@ -62,7 +62,7 @@ public class CachingHealthIndicator implements HealthIndicator {
         CacheEntry cacheEntry = this.cachedHealth;
         long currentTime = System.nanoTime();
         if (currentTime > cacheEntry.getExpirationTime()) {
-            if (lock.compareAndSet(false, true)) {
+            if (busy.compareAndSet(false, true)) {
                 try {
                     delegate.check(h -> {
                         this.cachedHealth = new CacheEntry(currentTime + interval,
@@ -71,7 +71,7 @@ public class CachingHealthIndicator implements HealthIndicator {
                     });
                     return;
                 } finally {
-                    lock.set(false);
+                    busy.set(false);
                 }
             }
         }
