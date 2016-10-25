@@ -15,9 +15,9 @@ subprojects {
     targetCompatibility = 1.8
 
     ext {
-        governatorVersion = '1.14.2'
-        archaiusVersion = '2.1.7'
-        eurekaVersion = '1.5.5'
+        governatorVersion = '1.15.5'
+        archaiusVersion = '2.1.10'
+        eurekaVersion = '1.6.0'
     }
 
     repositories { 
