@@ -6,6 +6,7 @@ dependencies {
     compile project(':health-api')
     compile 'javax.inject:javax.inject:1'
     compile "com.netflix.governator:governator-api:${governatorVersion}"
+    compile "com.netflix.spectator:spectator-api:${spectatorVersion}"
     
     testCompile "org.mockito:mockito-core:1.9.5"
 }
