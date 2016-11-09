@@ -15,10 +15,14 @@
  */
 package com.netflix.runtime.health.core;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -28,6 +32,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.netflix.governator.event.ApplicationEventDispatcher;
 import com.netflix.runtime.health.api.Health;
 import com.netflix.runtime.health.api.HealthCheckAggregator;
@@ -36,28 +43,38 @@ import com.netflix.runtime.health.api.HealthIndicator;
 import com.netflix.runtime.health.api.HealthIndicatorCallback;
 import com.netflix.runtime.health.api.IndicatorMatcher;
 import com.netflix.runtime.health.api.IndicatorMatchers;
+import com.netflix.spectator.api.Registry;
 
 /**
  */
-public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
-  
-	private final List<HealthIndicator> indicators;
-	private final ScheduledExecutorService executor;
-	private final TimeUnit units;
-	private final long maxWaitTime;
-	private final ApplicationEventDispatcher eventDispatcher;
-	private final AtomicBoolean previousHealth;
-	
+public class SimpleHealthCheckAggregator implements HealthCheckAggregator, Closeable {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(SimpleHealthCheckAggregator.class);
+    private static final int HEALTH_CHECK_EXECUTOR_POOL_SIZE = 3;
+    private final List<HealthIndicator> indicators;
+    private final ScheduledExecutorService scheduledExecutor;
+    private final ExecutorService healthCheckExecutor;
+    private final TimeUnit units;
+    private final long maxWaitTime;
+    private final ApplicationEventDispatcher eventDispatcher;
+    private final AtomicBoolean previousHealth;
+    private final Optional<Registry> registry;
+
     public SimpleHealthCheckAggregator(List<HealthIndicator> indicators, long maxWaitTime, TimeUnit units) {
 	    this(indicators, maxWaitTime, units, null);
 	}
-
+    
     public SimpleHealthCheckAggregator(List<HealthIndicator> indicators, long maxWaitTime, TimeUnit units,
             ApplicationEventDispatcher eventDispatcher) {
+        this(indicators, maxWaitTime, units, eventDispatcher, null);
+    }
+
+    public SimpleHealthCheckAggregator(List<HealthIndicator> indicators, long maxWaitTime, TimeUnit units,
+            ApplicationEventDispatcher eventDispatcher, Registry registry) {
         this.indicators = new ArrayList<>(indicators);
         this.maxWaitTime = maxWaitTime;
         this.units = units;
-        this.executor = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {  
+        this.scheduledExecutor = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {  
             @Override
             public Thread newThread(Runnable r) {
                 Thread thread = new Thread(r, "healthIndicatorMonitor");
@@ -65,8 +82,17 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
                 return thread;
             }
         });
+        this.healthCheckExecutor = Executors.newFixedThreadPool(HEALTH_CHECK_EXECUTOR_POOL_SIZE, new ThreadFactory() {  
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread thread = new Thread(r, "healthIndicatorExecutor");
+                thread.setDaemon(true);
+                return thread;
+            }
+        });
         this.eventDispatcher = eventDispatcher;
         this.previousHealth = new AtomicBoolean();
+        this.registry = Optional.ofNullable(registry);
     }
     
     @Override
@@ -107,7 +133,7 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
                 } catch (Exception ex) {
                     callback.inform(Health.unhealthy(ex).build());
                 }
-            });
+            }, healthCheckExecutor);
             
         }).collect(Collectors.toList());
                 
@@ -116,7 +142,7 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
         }
         
         if (maxWaitTime != 0 && units != null) {
-            executor.schedule(new Runnable() {
+            scheduledExecutor.schedule(new Runnable() {
                 @Override
                 public void run() {
                     future.complete(getStatusFromCallbacks(callbacks));
@@ -125,7 +151,18 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
             }, maxWaitTime, units);
         }
 
-        return future;
+        return doWithFuture(future);
+    }
+    
+    protected CompletableFuture<HealthCheckStatus> doWithFuture(CompletableFuture<HealthCheckStatus> future) {
+        return future.whenComplete((status, error) -> {
+            if (status.getHealthResults().stream().filter(s -> s.getErrorMessage().orElse("").contains(TimeoutException.class.getName())).count() > 0) {
+                registry.ifPresent(r -> r.counter("runtime.health", "status", "TIMEOUT").increment());
+            } else {
+                registry.ifPresent(r -> r.counter("runtime.health", "status", status.isHealthy() ? "HEALTHY" : "UNHEALTHY").increment());
+            }
+            LOG.debug("Health Status: {}", status);
+        });
     }
 
 	protected HealthCheckStatus getStatusFromCallbacks(final List<HealthIndicatorCallbackImpl> callbacks) {
@@ -177,5 +214,11 @@ public class SimpleHealthCheckAggregator implements HealthCheckAggregator {
         public boolean isSuppressed() {
             return this.suppressed;
         }
+    }
+
+    @Override
+    public void close() throws IOException {
+        this.healthCheckExecutor.shutdown();
+        this.scheduledExecutor.shutdown();
     }
 }
